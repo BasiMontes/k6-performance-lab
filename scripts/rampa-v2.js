@@ -20,12 +20,32 @@ const PISTAS = Array.from(
   { length: 15 },
   (_, i) => `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
 );
-// Franjas de inicio en hora local de Madrid (CET, UTC+1 en diciembre).
+// Franjas de inicio en hora local de Madrid. El desfase respecto a UTC cambia con el
+// horario de verano (UTC+1 en invierno, UTC+2 en verano), así que se calcula por fecha.
 const HORAS_MADRID = [9, 10, 11, 12, 13, 16, 17, 18, 19, 20];
 const BASE_UTC = Date.parse('2026-12-07T00:00:00Z');
 const MINUTO = 60 * 1000;
 const HORA = 60 * MINUTO;
 const DIA = 24 * HORA;
+
+// Último domingo de un mes (0-based) a las 01:00 UTC, que es el instante del cambio de horario en la UE.
+function ultimoDomingo(anio, mes) {
+  const d = new Date(Date.UTC(anio, mes + 1, 0, 1));
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay());
+  return d.getTime();
+}
+
+function enHorarioVerano(t) {
+  const anio = new Date(t).getUTCFullYear();
+  return t >= ultimoDomingo(anio, 2) && t < ultimoDomingo(anio, 9);
+}
+
+// Instante UTC en que Madrid marca la hora indicada, para el día que empieza en inicioDiaUtc.
+function inicioEnMadrid(inicioDiaUtc, horaLocal) {
+  let t = inicioDiaUtc + (horaLocal - 1) * HORA; // supuesto: invierno (UTC+1)
+  if (enHorarioVerano(t)) t -= HORA; // verano (UTC+2)
+  return t;
+}
 
 const conflictoNegocio = new Rate('reservas_409');
 
@@ -93,7 +113,7 @@ export default function (data) {
   const pistaReserva = PISTAS[u0 % 15];
   const hora = HORAS_MADRID[Math.floor(u0 / 7) % 10];
   const dia = __ITER * 7 + (u0 % 7);
-  const inicioMs = BASE_UTC + dia * DIA + (hora - 1) * HORA;
+  const inicioMs = inicioEnMadrid(BASE_UTC + dia * DIA, hora);
   const inicio = new Date(inicioMs).toISOString();
   const fin = new Date(inicioMs + HORA).toISOString();
 
