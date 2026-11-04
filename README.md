@@ -20,6 +20,20 @@ Medir cómo se comporta la API bajo carga creciente y convertir los umbrales de 
 - Node 24 (`nvm use` o `fnm use`).
 - Aplicación: https://github.com/BasiMontes/api-contract-tests, arrancada en local.
 
+## Preparar el entorno
+
+Pasos previos a cualquier medición. Cada uno se comprueba antes de seguir con el siguiente.
+
+1. **Instalar k6** en el Mac: `brew install k6`. Comprobar con `k6 version`. Versión usada en las primeras mediciones: 2.3.0.
+2. **Node 24** en la carpeta de la API: `nvm use` (o `fnm use`) y `node -v`, que debe mostrar `v24.x`.
+3. **Clonar la API** y arrancarla en una terminal aparte:
+   - `git clone https://github.com/BasiMontes/api-contract-tests`
+   - `cd api-contract-tests`, `npm install`, `npm run server`
+   - Escucha en `http://localhost:3000`. Para otro puerto, `PORT=<puerto>`.
+4. **Comprobar que responde** en otra terminal: `curl http://localhost:3000/pistas`. Debe devolver JSON.
+
+Antes de cada ejecución completa: parar el servidor (Ctrl+C) y volver a arrancarlo. Las reservas están en memoria, así que sin reinicio la siguiente medición parte de un estado distinto.
+
 ## Limitaciones
 
 - k6 y la API comparten CPU.
