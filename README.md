@@ -2,7 +2,7 @@
 
 Proyecto 4 del portfolio de QA: pruebas de rendimiento con k6 contra la API de reservas de pistas (`api-contract-tests`), ejecutada en local.
 
-**Estado:** alcance confirmado, sin mediciones todavía. Los umbrales p95 se fijarán y anotarán antes de la primera ejecución.
+**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta.
 
 ## Objetivo
 
@@ -48,10 +48,42 @@ Las cifras 100 y 200 ms vienen de la literatura de usabilidad, no se han medido 
 
 - **v1 (`scripts/rampa.js`), descartada.** Rampa 5-10-20-50 VUs. Primera ejecución: lecturas p95 1,77 ms, escrituras p95 2,66 ms, 0 errores inesperados, **88,3 % de 409**. No se encontró punto de degradación. Se descarta porque (a) el 88 % de las escrituras eran rechazos por límites o solapes, así que la latencia de escritura no era la de crear reservas, y (b) 50 VUs no llegan al punto de degradación. Solo se hizo una repetición; no se usa como resultado final.
 - **v2-1 (primera ejecución de v2), inválida.** Lecturas p95 4,15 ms y escrituras p95 5,28 ms con 200 VUs, 20 de 17.950 reservas en 409. Pero **905 `POST /reservas` devolvieron 400 `OUTSIDE_OPENING_HOURS` y el umbral de errores se incumplió (1,25 %)**. Causa: un error del escenario, no de la API. La conversión de hora local a UTC suponía siempre UTC+1, y desde el cambio a horario de verano (28/3/2027) las reservas de las 13:00 caían a las 14:00 de Madrid, que es horario de cierre. La API respondió correctamente. Los fallos afectaban solo a las VU que reservaban a las 13:00 y empezaron en la iteración 16 (29/3/2027). Se corrigió el cálculo del desfase por fecha y se comprobó contra la zona horaria real de Madrid (80.000 casos, 0 errores). `diagnostico-post.js` queda como registro de esa investigación.
-- **v2-1, válida (primera repetición oficial, con la corrección de horario).** 17.828 iteraciones y 71.712 peticiones, 0 errores inesperados y 0 de 17.828 reservas en 409. Todos los umbrales cumplidos: lecturas p95 9,35 ms y escrituras p95 9,42 ms, con pico máximo de 176 ms. Con 200 VUs la latencia de lectura sube cinco veces respecto a 1 VU (1,99 ms), pero no llega al umbral. No se ha encontrado punto de degradación. Limitación: `GET /reservas` devuelve todas las reservas del usuario, que crecen durante la prueba, así que parte del aumento puede venir de ahí. Pendiente: comprobar la CPU de k6 con 200 VUs y repetir la prueba dos veces más.
+- **v2-1, válida (primera repetición oficial, con la corrección de horario).** 17.828 iteraciones y 71.712 peticiones, 0 errores inesperados y 0 de 17.828 reservas en 409. Todos los umbrales cumplidos: lecturas p95 9,35 ms y escrituras p95 9,42 ms, con máximo global de 176 ms (incluye las peticiones de `setup`). Con 200 VUs la latencia de lectura sube cinco veces respecto a 1 VU (1,99 ms), pero no llega al umbral. No se ha encontrado punto de degradación. Limitación: `GET /reservas` devuelve todas las reservas del usuario, que crecen durante la prueba, así que parte del aumento puede venir de ahí. Las repeticiones y la CPU se resuelven en «Resultados v2».
 - **v2 (`scripts/rampa-v2.js`), oficial.** Rampa 10-25-50-100-200 VUs, un minuto cada etapa, bajada de 10 s. Cambia la asignación de reservas: cada usuario reserva un día cada 7 días y en una pista y franja asignadas sin colisiones entre usuarios. Los 409 esperados son casi nulos.
 
 El cambio se decidió tras ver `rampa-1`, así que v1 y v2 no son comparables entre sí en la parte de escrituras.
+
+## Resultados v2 (3 ejecuciones)
+
+Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución. Chip, núcleos y RAM del Mac: pendiente de anotar. Salidas completas en `resultados/v2-1.txt`, `v2-2.txt` y `v2-3.txt`.
+
+| Ejecución | Iteraciones | Errores inesperados | Reservas en 409 | p95 lecturas | p95 escrituras |
+|---|---|---|---|---|---|
+| v2-1 (válida) | 17.828 | 0 | 0 | 9,35 ms | 9,42 ms |
+| v2-2 | 17.884 | 0 | 0 | 7,26 ms | 7,89 ms |
+| v2-3 | 17.924 | 0 | 0 | 5,28 ms | 6,16 ms |
+| **Mínimo** | | | | **5,28 ms** | **6,16 ms** |
+| **Mediana** | | | | **7,26 ms** | **7,89 ms** |
+| **Máximo** | | | | **9,35 ms** | **9,42 ms** |
+
+Máximos por petición, sin `setup`, disponibles solo para v2-3: lecturas 46,13 ms y escrituras 17,27 ms. El máximo global de cada ejecución (176, 172 y 321 ms) incluye las peticiones de registro y login de `setup`, que no llevan etiqueta de endpoint.
+
+Conclusiones:
+
+- **P2:** los umbrales se cumplen en las tres ejecuciones. El p95 más alto de lecturas (9,35 ms) queda más de 10 veces por debajo de 100 ms, y el de escrituras (9,42 ms) más de 20 veces por debajo de 200 ms. Errores inesperados: 0 en las tres.
+- **P1:** no hay punto de degradación hasta 200 VUs. La mediana de lecturas sube de 1,99 ms con 1 VU (calibración) a unos 7 ms con 200 VUs, entre 3 y 5 veces más, sin cruzar el umbral. Para encontrar el punto hace falta más carga.
+- **P3:** no concluyente. Las escrituras son algo más lentas que las lecturas en las tres ejecuciones (diferencias de 0,1 a 0,9 ms), pero la etiqueta `lectura` agrupa tres endpoints (`GET /pistas`, `GET /pistas/{id}` y `GET /reservas`). Con esta versión no se puede decir qué endpoint es el más sensible.
+
+Predicciones v2:
+
+- Lecturas p95 < 100 ms hasta 100 VUs: se cumple.
+- Lecturas incumplen con 200 VUs: no se cumple; siguen por debajo del umbral.
+- Proporción de 409 < 1 %: se cumple (0 %).
+- k6 consume mucha CPU con 200 VUs: no se cumple en la muestra de v2-3 (unos 11 %), aunque la medición es parcial (ver limitaciones).
+
+CPU de v2-3 (`top` cada 30 s): no concluyente. Un proceso `node` que probablemente es la API (PID 75969, no confirmado) subió de 2 % a 34 % durante la prueba. Otros procesos `node` efímeros llegaron a 150–196 % en una o dos muestras. No se capturó la CPU total del sistema.
+
+Estado de P1: abierta. Una rampa v3 con más de 200 VUs está propuesta, sin ejecutar.
 
 ## Escenario oficial v2 (`scripts/rampa-v2.js`)
 
@@ -97,6 +129,8 @@ Sin cifras. Hipótesis cualitativas:
 - El almacenamiento de la API es en memoria: se mide el código, no una base de datos.
 - Sin red real: la latencia es la de localhost.
 - 3 ejecuciones por escenario; se reportan mínimo, mediana y máximo.
+- La CPU se muestrea con `top` cada 30 s: la atribución por proceso no está confirmada.
+- Las etiquetas agrupan endpoints: `lectura` incluye tres endpoints, así que P3 no se responde por endpoint con esta versión.
 
 ## Documentación
 
