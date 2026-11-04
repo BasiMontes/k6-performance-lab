@@ -2,7 +2,7 @@
 
 Proyecto 4 del portfolio de QA: pruebas de rendimiento con k6 contra la API de reservas de pistas (`api-contract-tests`), ejecutada en local.
 
-**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta. La v3 (hasta 400 VUs) está preparada y sus predicciones anotadas; pendiente de ejecutar.
+**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta. La v3 (hasta 400 VUs) se ha medido en 3 repeticiones: ver «Resultados v3».
 
 ## Objetivo
 
@@ -87,7 +87,7 @@ Estado de P1: abierta. Una rampa v3 con más de 200 VUs está propuesta, sin eje
 
 ## Escenario v3 (`scripts/rampa-v3.js`)
 
-Objetivo: encontrar el punto de degradación (P1) y separar la sensibilidad por endpoint (P3). Pendiente de ejecutar.
+Objetivo: encontrar el punto de degradación (P1) y separar la sensibilidad por endpoint (P3). Medido en 3 repeticiones: ver «Resultados v3».
 
 - Rampa: 50, 100, 200, 300 y 400 usuarios virtuales, un minuto por etapa, y bajada de 10 s.
 - 400 usuarios de la API creados en `setup`, uno por usuario virtual.
@@ -114,9 +114,60 @@ Hipótesis cualitativas, sin cifras:
 - Node ejecuta el código de la API en un solo hilo. Si la latencia se dispara en 300 o 400 VUs, el proceso `node` debería acercarse al 100 % de un núcleo en ese tramo. Si no se acerca, la causa no es la CPU de la API.
 - Si alguna predicción no se cumple, se anota aquí con la explicación. Si la prueba falla, primero se decide si el fallo es de la prueba o del producto.
 
+## Resultados v3 (3 repeticiones oficiales)
+
+Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución, script con `systemTags` sin `url`. Chip, núcleos y RAM del Mac: pendiente de anotar. Ficheros: `resultados/v3-1.txt`, `v3-2.txt`, `v3-3.txt` (resumen), `v3-N-raw.csv` (datos crudos) y `cpu-v3-N.txt`.
+
+Resumen global de k6 (p95 de toda la prueba):
+
+| Ejecución | Iteraciones | Peticiones | Errores inesperados | Reservas en 409 | p95 lecturas | p95 escrituras |
+|---|---|---|---|---|---|---|
+| v3-1 | 52.590 | 263.750 | 0 | 0 | 5,69 ms | 4,57 ms |
+| v3-2 | 52.561 | 263.605 | 0 | 0 | 6,53 ms | 5,01 ms |
+| v3-3 | 52.309 | 262.345 | 0 | 0 | 12,58 ms | 8,83 ms |
+| **Mínimo** | | | | | **5,69 ms** | **4,57 ms** |
+| **Mediana** | | | | | **6,53 ms** | **5,01 ms** |
+| **Máximo** | | | | | **12,58 ms** | **8,83 ms** |
+
+Los umbrales se cumplen en las tres (lecturas < 100 ms, escrituras < 200 ms).
+
+p95 por etapa (lecturas, calculado desde el CSV con `scripts/analisis-etapas.py`):
+
+| VUs al final de la etapa | v3-1 | v3-2 | v3-3 |
+|---|---|---|---|
+| 100 | 3,84 ms | 3,36 ms | 3,43 ms |
+| 200 | 4,45 ms | 3,85 ms | 4,62 ms |
+| 300 | 3,88 ms | 4,48 ms | 7,90 ms |
+| 400 | 11,93 ms | 10,00 ms | 18,78 ms |
+
+Escrituras a 400 VUs: 9,04 / 7,30 / 13,44 ms (mínimo, mediana y máximo: 7,30 / 9,04 / 13,44 ms).
+
+Conclusiones:
+
+- **P1:** la latencia empieza a subir entre 200 y 300 VUs, y el salto más claro está entre 300 y 400. A 400 VUs el p95 de lecturas está entre 10 y 19 ms, muy por debajo del umbral de 100 ms. No aparecen errores hasta 400 VUs, que es el máximo probado. La magnitud varía bastante entre repeticiones: en la v3-3 el codo empieza antes y es más alto. Causa no confirmada: en las muestras de 30 s del tramo de carga, la CPU de la API no llega al 100 % de un núcleo (una muestra temprana sí, probablemente durante `setup()`), y el Mac tiene entre un 57 % y un 85 % de inactividad en todo el ensayo.
+- **P2:** los umbrales se cumplen en las tres repeticiones, con un margen de casi 8 veces en lecturas (peor caso: 12,58 ms frente a 100 ms) y más de 20 veces en escrituras (8,83 ms frente a 200 ms).
+- **P3:** en el tramo de 400 VUs todos los endpoints suben a la vez, entre 2,5 y 4 veces. `GET /pistas` y `GET /pistas/{id}` son los más altos, por encima de `POST /reservas`, `GET /reservas` y `DELETE`. El patrón es común, así que apunta a un cuello compartido más que al coste de cada endpoint.
+
+Predicciones v3 (contrastadas):
+
+- Lecturas < 100 ms hasta 400 VUs: **se cumple**.
+- Errores inesperados cero hasta 400 VUs: **se cumple**.
+- La API se acerca al 100 % de un núcleo en el tramo de latencia alta: **no se cumple**. La CPU de `node` llega a 50–65 % al final de la prueba, así que el codo no parece venir de la CPU de la API.
+- `POST /reservas` más lento que `DELETE`: **se cumple** en todas las etapas.
+- La latencia de `GET /reservas` crece durante la prueba: **no se cumple**. En las etapas centrales se mantiene estable.
+- Las lecturas aguantan más carga que las escrituras (predicción del alcance): **no se cumple**. Las lecturas son las que más suben a 400 VUs.
+
+Limitaciones de v3:
+
+- Las ejecuciones anteriores a la corrección de `systemTags` (la primera medición y la de CSV) se descartan; los ficheros `v3-1`, `v3-2` y `v3-3` son las repeticiones oficiales.
+- k6 avisa de más de 400.000 series temporales incluso después de la corrección. Todavía no sabemos qué etiqueta lo causa. No afecta a los umbrales, pero aumenta la carga de k6 en el Mac.
+- `setup()` tarda unos 80 segundos con 400 usuarios. Está fuera de la prueba.
+- `GET /reservas` devuelve también las canceladas, así que su respuesta crece durante la prueba.
+- La etapa "bajada" (10 s) empieza todavía con unos 400 VUs y no es una medición de descenso.
+
 ### Historial de v3
 
-- **v3-1, primera medición (descartada para la curva).** Umbrales cumplidos: lecturas p95 6,14 ms, escrituras p95 4,66 ms, 0 errores inesperados y 0 reservas en 409 (52.554 iteraciones). Por endpoint, p95 de `GET /pistas` 6,35 ms, `GET /pistas/{id}` 6,94 ms, `GET /reservas` 4,70 ms, `POST /reservas` 5,35 ms y `DELETE` 3,69 ms. Pero el resumen es de toda la prueba y no tiene datos por etapa, así que P1 no se responde con ella. Además, k6 avisó de más de 400.000 series temporales por las URL con ID. Se corrige en el script (nombres fijos) y se guardan datos crudos. Las tres repeticiones oficiales se harán con el script corregido.
+- **v3-1, primera medición (descartada para la curva).** Umbrales cumplidos: lecturas p95 6,14 ms, escrituras p95 4,66 ms, 0 errores inesperados y 0 reservas en 409 (52.554 iteraciones). Por endpoint, p95 de `GET /pistas` 6,35 ms, `GET /pistas/{id}` 6,94 ms, `GET /reservas` 4,70 ms, `POST /reservas` 5,35 ms y `DELETE` 3,69 ms. Pero el resumen es de toda la prueba y no tiene datos por etapa, así que P1 no se responde con ella. Además, k6 avisó de más de 400.000 series temporales por las URL con ID. Se corrige en el script (nombres fijos) y se guardan datos crudos. Las tres repeticiones oficiales se han hecho con el script corregido (ver «Resultados v3»).
 - **v3-1, segunda medición (con CSV, descartada).** Umbrales cumplidos: lecturas p95 4,01 ms, escrituras p95 3,22 ms, 0 errores y 0 en 409 (52.700 iteraciones). Por endpoint, p95 de 4,17 / 4,25 / 3,58 / 3,60 / 2,73 ms (pistas, detalle, listar, crear, cancelar). Sigue el aviso de más de 400.000 series: el nombre fijo no bastaba, porque k6 también etiqueta cada petición con `url` (con el ID). Se corrige con `systemTags` sin `url`. Las cifras de la primera medición y de esta difieren en torno a un 30 %, lo que ya indica la variabilidad entre ejecuciones.
 - Captura de CPU durante v3-1: el proceso `node` (probablemente la API) subió hasta unos 50 % de un núcleo, y k6 hasta un 32 %, con el sistema al 80 % inactivo. Sin saturación del núcleo, con la alineación temporal aproximada.
 
