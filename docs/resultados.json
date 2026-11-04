@@ -1,0 +1,244 @@
+{
+  "proyecto": "k6-performance-lab",
+  "descripcion": "Cifras de las pruebas de rendimiento contra api-contract-tests (localhost:3000). Cada cifra indica su condición, el comando que la produjo y el fichero de origen.",
+  "condiciones_comunes": {
+    "k6": "2.3.0 (Homebrew)",
+    "node": "24.15.0 (.nvmrc)",
+    "api": "api-contract-tests, en memoria, arrancada con npm run server y reiniciada antes de cada ejecución",
+    "red": "localhost, sin red real",
+    "mac": {
+      "chip": "PENDIENTE",
+      "nucleos": "PENDIENTE",
+      "ram": "PENDIENTE",
+      "nota": "Pendiente de anotar por el autor desde el Mac (chip, núcleos y RAM)."
+    }
+  },
+  "ficheros_en_mac_no_en_repo": "resultados/*.txt, resultados/*.json, resultados/cpu-*.txt y resultados/*-raw.csv se generan en el Mac y no están en el repo. Este JSON los referencia, pero no se pueden verificar desde el repo hasta que se suban.",
+  "umbrales": {
+    "lecturas_p95_ms": 100,
+    "escrituras_p95_ms": 200,
+    "errores_inesperados_tasa": 0.01,
+    "origen": "Fijados antes de la primera prueba oficial. Las cifras 100 y 200 ms vienen de la literatura de usabilidad, no se han medido en este sistema."
+  },
+  "calibracion": {
+    "id": "calibracion",
+    "descripcion": "1 VU, solo lecturas, en reposo.",
+    "comando": "k6 run scripts/calibracion.js | tee resultados/calibracion.txt",
+    "fichero": "resultados/calibracion.txt",
+    "lecturas_p95_ms": 1.99
+  },
+  "historial_descartado": {
+    "v1_rampa": {
+      "estado": "descartada",
+      "motivo": "El 88,3 % de las escrituras fueron 409 de negocio; 50 VUs no llegan al punto de degradación. Una sola repetición.",
+      "comando": "k6 run scripts/rampa.js --summary-export resultados/rampa-1.json | tee resultados/rampa-1.txt",
+      "fichero": "resultados/rampa-1.txt, resultados/rampa-1.json",
+      "lecturas_p95_ms": 1.77,
+      "escrituras_p95_ms": 2.66,
+      "errores_inesperados": 0,
+      "reservas_409_pct": 88.3
+    },
+    "v2_1_invalida": {
+      "estado": "invalida",
+      "motivo": "Error del escenario (conversión de hora local a UTC tras el cambio de horario). 905 POST /reservas devolvieron 400 OUTSIDE_OPENING_HOURS y el umbral de errores se incumplió (1,25 %). La API respondió correctamente. Corregido y verificado contra la zona horaria de Madrid (80.000 casos, 0 errores).",
+      "comando": "k6 run scripts/rampa-v2.js --summary-export resultados/v2-1.json | tee resultados/v2-1.txt",
+      "fichero": "resultados/v2-1.txt (versión anterior a la corrección)",
+      "reservas_400_fuera_de_horario": 905,
+      "tasa_errores_inesperados_pct": 1.25
+    },
+    "v3_primera_medicion": {
+      "estado": "descartada para la curva (no tiene datos por etapa)",
+      "comando": "k6 run scripts/rampa-v3.js --summary-export resultados/v3-1.json | tee resultados/v3-1.txt",
+      "iteraciones": 52554,
+      "lecturas_p95_ms": 6.14,
+      "escrituras_p95_ms": 4.66,
+      "errores_inesperados": 0,
+      "reservas_409": 0,
+      "p95_por_endpoint_ms": {
+        "GET /pistas": 6.35,
+        "GET /pistas/{id}": 6.94,
+        "GET /reservas": 4.70,
+        "POST /reservas": 5.35,
+        "DELETE /reservas/{id}": 3.69
+      },
+      "nota": "Anterior a la corrección de nombres fijos. k6 avisó de más de 400.000 series temporales."
+    },
+    "v3_segunda_medicion": {
+      "estado": "descartada (anterior a la corrección de systemTags)",
+      "comando": "k6 run scripts/rampa-v3.js --out csv=resultados/v3-1-raw.csv --summary-export resultados/v3-1.json | tee resultados/v3-1.txt",
+      "iteraciones": 52700,
+      "lecturas_p95_ms": 4.01,
+      "escrituras_p95_ms": 3.22,
+      "errores_inesperados": 0,
+      "reservas_409": 0,
+      "p95_por_endpoint_ms": {
+        "GET /pistas": 4.17,
+        "GET /pistas/{id}": 4.25,
+        "GET /reservas": 3.58,
+        "POST /reservas": 3.60,
+        "DELETE /reservas/{id}": 2.73
+      },
+      "nota": "Sigue el aviso de más de 400.000 series: la etiqueta url (con el ID) se seguía añadiendo."
+    }
+  },
+  "v2_oficial": {
+    "escenario": "scripts/rampa-v2.js: 10, 25, 50, 100 y 200 VUs, un minuto por etapa, bajada de 10 s. 200 usuarios creados en setup.",
+    "peticiones_por_iteracion": 4,
+    "peticiones_setup": 400,
+    "ejecuciones": [
+      {
+        "id": "v2-1",
+        "estado": "válida (primera repetición oficial, con la corrección de horario)",
+        "comando": "k6 run scripts/rampa-v2.js --summary-export resultados/v2-1.json | tee resultados/v2-1.txt",
+        "fichero": "resultados/v2-1.txt, resultados/v2-1.json",
+        "iteraciones": 17828,
+        "peticiones_prueba": 71312,
+        "peticiones_totales_con_setup": 71712,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 9.35,
+        "escrituras_p95_ms": 9.42,
+        "maximo_global_ms_incluye_setup": 176
+      },
+      {
+        "id": "v2-2",
+        "comando": "k6 run scripts/rampa-v2.js --summary-export resultados/v2-2.json | tee resultados/v2-2.txt",
+        "fichero": "resultados/v2-2.txt, resultados/v2-2.json",
+        "iteraciones": 17884,
+        "peticiones_prueba": 71536,
+        "peticiones_totales_con_setup": 71936,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 7.26,
+        "escrituras_p95_ms": 7.89,
+        "maximo_global_ms_incluye_setup": 172
+      },
+      {
+        "id": "v2-3",
+        "comando": "k6 run scripts/rampa-v2.js --summary-export resultados/v2-3.json | tee resultados/v2-3.txt",
+        "fichero": "resultados/v2-3.txt, resultados/v2-3.json, resultados/cpu-v2-3.txt",
+        "iteraciones": 17924,
+        "peticiones_prueba": 71696,
+        "peticiones_totales_con_setup": 72096,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 5.28,
+        "escrituras_p95_ms": 6.16,
+        "maximo_lecturas_sin_setup_ms": 46.13,
+        "maximo_escrituras_sin_setup_ms": 17.27,
+        "maximo_global_ms_incluye_setup": 321
+      }
+    ],
+    "resumen": {
+      "lecturas_p95_ms": {"minimo": 5.28, "mediana": 7.26, "maximo": 9.35},
+      "escrituras_p95_ms": {"minimo": 6.16, "mediana": 7.89, "maximo": 9.42}
+    },
+    "wilson_errores_cero": {
+      "nota": "Límite superior de Wilson al 95 % para 0 eventos sobre peticiones de la prueba (sin setup).",
+      "v2-1": {"n": 71312, "limite_superior_pct": 0.00539},
+      "v2-2": {"n": 71536, "limite_superior_pct": 0.00537},
+      "v2-3": {"n": 71696, "limite_superior_pct": 0.00536},
+      "v2_agregado": {"n": 214544, "limite_superior_pct": 0.00179}
+    }
+  },
+  "v3_oficial": {
+    "escenario": "scripts/rampa-v3.js: 50, 100, 200, 300 y 400 VUs, un minuto por etapa, bajada de 10 s. 400 usuarios creados en setup. setupTimeout 5 min.",
+    "peticiones_por_iteracion": 5,
+    "peticiones_setup": 800,
+    "ejecuciones": [
+      {
+        "id": "v3-1",
+        "comando": "k6 run scripts/rampa-v3.js --out csv=resultados/v3-1-raw.csv --summary-export resultados/v3-1.json | tee resultados/v3-1.txt",
+        "fichero": "resultados/v3-1.txt, resultados/v3-1.json, resultados/v3-1-raw.csv, resultados/cpu-v3-1.txt",
+        "iteraciones": 52590,
+        "peticiones_prueba": 262950,
+        "peticiones_totales_con_setup": 263750,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 5.69,
+        "escrituras_p95_ms": 4.57
+      },
+      {
+        "id": "v3-2",
+        "comando": "k6 run scripts/rampa-v3.js --out csv=resultados/v3-2-raw.csv --summary-export resultados/v3-2.json | tee resultados/v3-2.txt",
+        "fichero": "resultados/v3-2.txt, resultados/v3-2.json, resultados/v3-2-raw.csv, resultados/cpu-v3-2.txt",
+        "iteraciones": 52561,
+        "peticiones_prueba": 262805,
+        "peticiones_totales_con_setup": 263605,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 6.53,
+        "escrituras_p95_ms": 5.01
+      },
+      {
+        "id": "v3-3",
+        "comando": "k6 run scripts/rampa-v3.js --out csv=resultados/v3-3-raw.csv --summary-export resultados/v3-3.json | tee resultados/v3-3.txt",
+        "fichero": "resultados/v3-3.txt, resultados/v3-3.json, resultados/v3-3-raw.csv, resultados/cpu-v3-3.txt",
+        "iteraciones": 52309,
+        "peticiones_prueba": 261545,
+        "peticiones_totales_con_setup": 262345,
+        "errores_inesperados": 0,
+        "reservas_409": 0,
+        "lecturas_p95_ms": 12.58,
+        "escrituras_p95_ms": 8.83
+      }
+    ],
+    "resumen": {
+      "lecturas_p95_ms": {"minimo": 5.69, "mediana": 6.53, "maximo": 12.58},
+      "escrituras_p95_ms": {"minimo": 4.57, "mediana": 5.01, "maximo": 8.83}
+    },
+    "p95_lecturas_por_etapa_ms": {
+      "fuente": "scripts/analisis-etapas.py sobre resultados/v3-N-raw.csv",
+      "etapas": [
+        {"vus_fin_etapa": 100, "v3-1": 3.84, "v3-2": 3.36, "v3-3": 3.43},
+        {"vus_fin_etapa": 200, "v3-1": 4.45, "v3-2": 3.85, "v3-3": 4.62},
+        {"vus_fin_etapa": 300, "v3-1": 3.88, "v3-2": 4.48, "v3-3": 7.90},
+        {"vus_fin_etapa": 400, "v3-1": 11.93, "v3-2": 10.00, "v3-3": 18.78}
+      ]
+    },
+    "p95_escrituras_400_vus_ms": {"v3-1": 9.04, "v3-2": 7.30, "v3-3": 13.44},
+    "p95_por_endpoint": {
+      "estado": "PENDIENTE",
+      "nota": "Las cifras por endpoint de las repeticiones oficiales no están en el repo. Se calculan con scripts/analisis-etapas.py sobre los CSV crudos cuando se suban. Las afirmaciones de P3 del README no se pueden verificar hasta entonces."
+    },
+    "cpu": {
+      "estado": "PENDIENTE de verificar",
+      "nota": "El README cita que node llega a 50–65 % de un núcleo al final y que el Mac queda entre 57 % y 85 % inactivo. Proceden de resultados/cpu-v3-N.txt, que no están en el repo. El PID de la API no está confirmado."
+    },
+    "wilson_errores_cero": {
+      "nota": "Límite superior de Wilson al 95 % para 0 eventos sobre peticiones de la prueba (sin setup).",
+      "v3-1": {"n": 262950, "limite_superior_pct": 0.00146},
+      "v3-2": {"n": 262805, "limite_superior_pct": 0.00146},
+      "v3-3": {"n": 261545, "limite_superior_pct": 0.00147},
+      "v3_agregado": {"n": 787300, "limite_superior_pct": 0.00049}
+    },
+    "limitaciones": [
+      "k6 avisa de más de 400.000 series temporales incluso después de la corrección de systemTags. Causa no identificada. No afecta a los umbrales.",
+      "setup() tarda unos 80 s con 400 usuarios. Está fuera de la prueba.",
+      "GET /reservas devuelve también las reservas canceladas, así que su respuesta crece durante la prueba.",
+      "La etapa de bajada dura 10 s y empieza con unos 400 VUs. No es una medición de descenso.",
+      "Las ejecuciones anteriores a la corrección de systemTags se descartan."
+    ]
+  },
+  "predicciones": {
+    "v2": [
+      {"prediccion": "Lecturas p95 < 100 ms hasta 100 VUs", "resultado": "se cumple"},
+      {"prediccion": "Lecturas incumplen con 200 VUs", "resultado": "no se cumple"},
+      {"prediccion": "Proporción de 409 < 1 %", "resultado": "se cumple"},
+      {"prediccion": "k6 consume mucha CPU con 200 VUs", "resultado": "no se cumple en la muestra de v2-3 (parcial)"}
+    ],
+    "v3": [
+      {"prediccion": "Lecturas < 100 ms hasta 400 VUs", "resultado": "se cumple"},
+      {"prediccion": "Errores inesperados cero hasta 400 VUs", "resultado": "se cumple"},
+      {"prediccion": "node cerca del 100 % de un núcleo en el tramo de latencia alta", "resultado": "no se cumple"},
+      {"prediccion": "POST /reservas más lento que DELETE en todas las etapas", "resultado": "se cumple"},
+      {"prediccion": "La latencia de GET /reservas crece durante la prueba", "resultado": "no se cumple"},
+      {"prediccion": "Las lecturas aguantan más carga que las escrituras", "resultado": "no se cumple"}
+    ]
+  },
+  "preguntas": {
+    "P1": "Abierta. El codo está entre 200 y 400 VUs, sin errores hasta 400 VUs. Causa no confirmada. Pendiente de decidir si se hace v4 (500–600 VUs).",
+    "P2": "Respondida para el escenario probado: los umbrales se cumplen en todas las ejecuciones oficiales.",
+    "P3": "Parcial. Hay un patrón común a todos los endpoints en 400 VUs. El orden por endpoint está pendiente de verificar con los CSV."
+  }
+}

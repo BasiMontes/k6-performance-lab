@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>k6 performance lab: resultados</title>
+<style>
+  :root {
+    --fondo: #ffffff;
+    --texto: #1d1d1f;
+    --suave: #6e6e73;
+    --linea: #d2d2d7;
+    --acento: #0b6e4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fondo: #161618;
+      --texto: #f5f5f7;
+      --suave: #a1a1a6;
+      --linea: #3a3a3c;
+      --acento: #4fd1a5;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fondo: #161618;
+    --texto: #f5f5f7;
+    --suave: #a1a1a6;
+    --linea: #3a3a3c;
+    --acento: #4fd1a5;
+  }
+  body {
+    background: var(--fondo);
+    color: var(--texto);
+    font: 16px/1.5 system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0 16px 48px;
+  }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 24px 0 4px; }
+  h2 { font-size: 1.2rem; margin: 32px 0 8px; color: var(--acento); }
+  p.suave, .suave { color: var(--suave); }
+  .tabla-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { font-weight: 600; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .aviso { border-left: 3px solid var(--acento); padding: 4px 12px; margin: 12px 0; }
+  code { font-size: 0.9em; word-break: break-word; }
+  .pendiente { color: var(--suave); font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <h1>k6 performance lab: resultados</h1>
+  <p class="suave">Pruebas de rendimiento de la API de reservas de pistas (<code>api-contract-tests</code>), en local. Cada cifra indica condición, comando y fichero de origen en <code>resultados.json</code>.</p>
+  <div id="contenido"><p class="suave">Cargando resultados…</p></div>
+</main>
+<script>
+(function () {
+  var contenido = document.getElementById('contenido');
+
+  function texto(valor) {
+    return valor === undefined || valor === null ? '' : String(valor);
+  }
+  function celda(valor, esNum) {
+    return '<td' + (esNum ? ' class="num"' : '') + '>' + texto(valor) + '</td>';
+  }
+  function tabla(cabeceras, filas) {
+    var html = '<div class="tabla-wrap"><table><thead><tr>';
+    cabeceras.forEach(function (c) { html += '<th>' + c + '</th>'; });
+    html += '</tr></thead><tbody>';
+    filas.forEach(function (fila) {
+      html += '<tr>' + fila.map(function (c, i) { return celda(c, i > 0); }).join('') + '</tr>';
+    });
+    return html + '</tbody></table></div>';
+  }
+  function ms(valor) { return valor === undefined ? '' : valor.toFixed(2).replace('.', ',') + ' ms'; }
+
+  function pintar(d) {
+    var v2 = d.v2_oficial, v3 = d.v3_oficial, html = '';
+
+    html += '<p class="aviso">Umbrales: lecturas p95 &lt; ' + d.umbrales.lecturas_p95_ms +
+      ' ms, escrituras p95 &lt; ' + d.umbrales.escrituras_p95_ms + ' ms, errores inesperados &lt; 1 %.</p>';
+
+    html += '<h2>Condiciones</h2><p>k6 ' + d.condiciones_comunes.k6 + ', Node ' + d.condiciones_comunes.node +
+      '. Mac: chip, núcleos y RAM <span class="pendiente">pendientes de anotar</span>.</p>';
+
+    html += '<h2>Escenario v3 (400 VUs): ejecuciones oficiales</h2>';
+    html += tabla(['Ejecución', 'Iteraciones', 'Peticiones de la prueba', 'Errores', '409 de negocio', 'p95 lecturas', 'p95 escrituras'],
+      v3.ejecuciones.map(function (e) {
+        return [e.id, e.iteraciones.toLocaleString('es-ES'), e.peticiones_prueba.toLocaleString('es-ES'),
+          e.errores_inesperados, e.reservas_409, ms(e.lecturas_p95_ms), ms(e.escrituras_p95_ms)];
+      }));
+    html += '<p class="suave">Mínimo, mediana y máximo de lecturas: ' + ms(v3.resumen.lecturas_p95_ms.minimo) + ' / ' +
+      ms(v3.resumen.lecturas_p95_ms.mediana) + ' / ' + ms(v3.resumen.lecturas_p95_ms.maximo) + '.</p>';
+
+    html += '<h2>P1: p95 de lecturas por etapa</h2>';
+    html += tabla(['VUs al final de la etapa', 'v3-1', 'v3-2', 'v3-3'],
+      v3.p95_lecturas_por_etapa_ms.etapas.map(function (e) {
+        return [e.vus_fin_etapa, ms(e['v3-1']), ms(e['v3-2']), ms(e['v3-3'])];
+      }));
+    html += '<p>La latencia empieza a subir entre 200 y 300 VUs. No hay errores hasta 400 VUs, que es el máximo probado. Causa no confirmada.</p>';
+
+    html += '<h2>P2: umbrales y errores</h2>';
+    html += '<p>Los umbrales se cumplen en las tres repeticiones de v3 y en las tres de v2. Con cero errores, el límite superior de Wilson al 95 % es ' +
+      v3.wilson_errores_cero.v3_agregado.limite_superior_pct.toString().replace('.', ',') + ' % en v3 (' +
+      v3.wilson_errores_cero.v3_agregado.n.toLocaleString('es-ES') + ' peticiones) y ' +
+      v2.wilson_errores_cero.v2_agregado.limite_superior_pct.toString().replace('.', ',') + ' % en v2 (' +
+      v2.wilson_errores_cero.v2_agregado.n.toLocaleString('es-ES') + ' peticiones).</p>';
+
+    html += '<h2>Escenario v2 (200 VUs)</h2>';
+    html += tabla(['Ejecución', 'Iteraciones', 'Errores', 'p95 lecturas', 'p95 escrituras'],
+      v2.ejecuciones.map(function (e) {
+        return [e.id, e.iteraciones.toLocaleString('es-ES'), e.errores_inesperados, ms(e.lecturas_p95_ms), ms(e.escrituras_p95_ms)];
+      }));
+
+    html += '<h2>P3: por endpoint</h2>';
+    html += '<p class="pendiente">' + v3.p95_por_endpoint.nota + '</p>';
+
+    html += '<h2>Limitaciones</h2><ul>' +
+      v3.limitaciones.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';
+
+    html += '<h2>Preguntas</h2>';
+    html += '<p><strong>P1.</strong> ' + d.preguntas.P1 + '</p>';
+    html += '<p><strong>P2.</strong> ' + d.preguntas.P2 + '</p>';
+    html += '<p><strong>P3.</strong> ' + d.preguntas.P3 + '</p>';
+
+    html += '<p class="suave">Datos completos: <a href="resultados.json">resultados.json</a>.</p>';
+    contenido.innerHTML = html;
+  }
+
+  try {
+    fetch('resultados.json')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(pintar)
+      .catch(function () {
+        contenido.innerHTML = '<p class="suave">No se han podido cargar los resultados. Revisa <a href="resultados.json">resultados.json</a>.</p>';
+      });
+  } catch (e) {
+    contenido.innerHTML = '<p class="suave">Tu navegador no permite cargar los resultados.</p>';
+  }
+})();
+</script>
+</body>
+</html>

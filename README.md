@@ -129,6 +129,8 @@ Resumen global de k6 (p95 de toda la prueba):
 | **Mediana** | | | | | **6,53 ms** | **5,01 ms** |
 | **Máximo** | | | | | **12,58 ms** | **8,83 ms** |
 
+«Peticiones» incluye las 800 de `setup()` (400 en v2). Para el límite de Wilson se usan solo las de la prueba: 262.950, 262.805 y 261.545 en v3 (ver `resultados/resultados.json`).
+
 Los umbrales se cumplen en las tres (lecturas < 100 ms, escrituras < 200 ms).
 
 p95 por etapa (lecturas, calculado desde el CSV con `scripts/analisis-etapas.py`):
@@ -220,4 +222,8 @@ Sin cifras. Hipótesis cualitativas:
 
 ## Documentación
 
-Ver `resultados/` (cifras con su condición y el comando que las produjo).
+- `resultados/resultados.json`: cada cifra con su condición, comando y fichero de origen.
+- `QUE-PROBAMOS.md`: alcance, escenarios, umbrales y limitaciones.
+- `docs/`: página de resultados (GitHub Pages), generada desde el JSON.
+
+Los ficheros de salida de k6 (`resultados/*.txt`, `*.json`, `*-raw.csv`, `cpu-*.txt`) se generan en el Mac. Pendiente de subir.
