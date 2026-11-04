@@ -368,7 +368,7 @@
     ]
   },
   "preguntas": {
-    "P1": "Abierta. El codo está entre 200 y 400 VUs, sin errores hasta 400 VUs. Causa no confirmada: la CPU de la API no se puede atribuir con certeza. Pendiente de decidir si se hace v4 (500–600 VUs).",
+    "P1": "Cerrada con limitación. El codo está entre 200 y 400 VUs, sin errores hasta 400 VUs. Causa no confirmada: la CPU de la API no se puede atribuir con certeza. No se hace v4 (500–600 VUs); el punto de rotura queda sin encontrar y documentado como limitación.",
     "P2": "Respondida para el escenario probado: los umbrales se cumplen en todas las ejecuciones oficiales.",
     "P3": "Parcial. Con los datos de toda la prueba, GET /pistas y GET /pistas/{id} son los más altos en las tres repeticiones. La subida por etapa por endpoint está pendiente de los CSV crudos."
   }

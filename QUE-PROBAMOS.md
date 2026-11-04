@@ -56,7 +56,7 @@ Los umbrales se fijaron antes de la primera prueba oficial. Las cifras 100 y 200
 4. **`GET /reservas` crece durante la prueba.** Devuelve también las reservas canceladas, así que su respuesta aumenta con el tiempo. Parte de su latencia puede venir de eso.
 5. **Coste de `POST /reservas` creciente.** La API guarda todas las reservas en una lista y algunas comprobaciones la recorren. Su coste puede subir a medida que la lista crece.
 6. **Aviso de series temporales en k6.** En v3, k6 avisa de más de 400.000 series incluso tras corregir `systemTags`. La causa no está identificada. No afecta a los umbrales, pero aumenta la carga de k6.
-7. **Punto de rotura no encontrado.** La prueba más alta llega a 400 VUs sin errores. No se ha probado si hay degradación de errores por encima de esa carga.
+7. **Punto de rotura no encontrado.** La prueba más alta llega a 400 VUs sin errores. No se ha probado si hay degradación de errores por encima de esa carga. Decisión de cierre: no se hace v4 (500–600 VUs); el punto de rotura queda como limitación.
 8. **Variabilidad entre repeticiones.** En v3 la latencia de lecturas a 400 VUs va de 10 a 19 ms según la ejecución. La causa de esa diferencia no está confirmada.
 9. **CSV crudos fuera del repo.** Los ficheros de resumen están en `resultados/`, pero los CSV crudos no. Las cifras por etapa de v3 no se pueden reproducir desde el repo.
 

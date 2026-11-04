@@ -2,7 +2,7 @@
 
 Proyecto 4 del portfolio de QA: pruebas de rendimiento con k6 contra la API de reservas de pistas (`api-contract-tests`), ejecutada en local.
 
-**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta. La v3 (hasta 400 VUs) se ha medido en 3 repeticiones: ver «Resultados v3».
+**Estado:** cerrado con limitación. v2 y v3 medidas en 3 repeticiones cada una, con todos los umbrales cumplidos. v3 llega a 400 VUs sin errores y sin punto de degradación. No se hace v4 (500–600 VUs): la limitación queda documentada en `QUE-PROBAMOS.md`.
 
 ## Objetivo
 
