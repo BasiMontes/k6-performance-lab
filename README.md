@@ -116,7 +116,7 @@ Hipótesis cualitativas, sin cifras:
 
 ## Resultados v3 (3 repeticiones oficiales)
 
-Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución, script con `systemTags` sin `url`. Mac: MacBook Air con Apple M3, 8 núcleos (4 de rendimiento y 4 de eficiencia) y 16 GB de RAM. Ficheros: `resultados/v3-1.txt`, `v3-2.txt`, `v3-3.txt` (resumen), `v3-N.json` y `cpu-v3-N.txt`. Los CSV crudos (`v3-N-raw.csv`) no están en el repo.
+Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución, script con `systemTags` sin `url`. Mac: MacBook Air con Apple M3, 8 núcleos (4 de rendimiento y 4 de eficiencia) y 16 GB de RAM. Ficheros: `resultados/v3-N.txt` (resumen), `v3-N.json`, `v3-N-etapas.txt` (p95 por etapa y endpoint) y `cpu-v3-N.txt`. Los CSV crudos (`v3-N-raw.csv`) no están en el repo.
 
 Resumen global de k6 (p95 de toda la prueba):
 
@@ -146,9 +146,9 @@ Escrituras a 400 VUs: 9,04 / 7,30 / 13,44 ms (mínimo, mediana y máximo: 7,30 /
 
 Conclusiones:
 
-- **P1:** la latencia empieza a subir entre 200 y 300 VUs, y el salto más claro está entre 300 y 400. A 400 VUs el p95 de lecturas está entre 10 y 19 ms, muy por debajo del umbral de 100 ms. No aparecen errores hasta 400 VUs, que es el máximo probado. La magnitud varía bastante entre repeticiones: en la v3-3 el codo empieza antes y es más alto. Causa no confirmada: la CPU de la API no se puede atribuir con certeza en las muestras de 30 s, y el Mac tiene entre un 32 % y un 86 % de inactividad según la muestra.
+- **P1:** la latencia empieza a subir entre 200 y 300 VUs en v3-2 y v3-3; en v3-1 no sube hasta 400 VUs. El salto más claro está entre 300 y 400 en las tres. A 400 VUs el p95 de lecturas está entre 10 y 19 ms, muy por debajo del umbral de 100 ms. No aparecen errores hasta 400 VUs, que es el máximo probado. La magnitud varía bastante entre repeticiones: en la v3-3 el codo empieza antes y es más alto. Causa no confirmada: la CPU de la API no se puede atribuir con certeza en las muestras de 30 s, y el Mac tiene entre un 32 % y un 86 % de inactividad según la muestra.
 - **P2:** los umbrales se cumplen en las tres repeticiones, con un margen de casi 8 veces en lecturas (peor caso: 12,58 ms frente a 100 ms) y más de 20 veces en escrituras (8,83 ms frente a 200 ms).
-- **P3:** con los datos de toda la prueba (líneas `lat_*` de los `.txt`), el orden se mantiene en las tres repeticiones: `GET /pistas` y `GET /pistas/{id}` son los más altos (6–15 ms), después `POST /reservas`, `GET /reservas` y `DELETE` (4–11 ms). La subida por etapa en 400 VUs por endpoint no está verificada: requiere los CSV crudos. El orden común apunta a un cuello compartido, pero no está demostrado.
+- **P3:** a 400 VUs el orden se mantiene en las tres repeticiones: `GET /pistas` (11,7–23,0 ms) y `GET /pistas/{id}` son los más altos, después `POST /reservas`, `GET /reservas` y `DELETE`. Respecto a 100 VUs, cada endpoint sube entre 2,0 y 6,9 veces según la repetición. Como los endpoints más simples también suben, el patrón apunta a un cuello compartido más que al coste propio de cada endpoint, pero no está demostrado.
 
 Predicciones v3 (contrastadas):
 
@@ -166,6 +166,7 @@ Limitaciones de v3:
 - `setup()` tarda unos 80 segundos con 400 usuarios. Está fuera de la prueba.
 - `GET /reservas` devuelve también las canceladas, así que su respuesta crece durante la prueba.
 - La etapa "bajada" (10 s) empieza todavía con unos 400 VUs y no es una medición de descenso.
+- Las etapas se asignan por minuto desde la primera petición, no con los temporizadores de k6. El límite entre etapas puede desplazarse unos segundos.
 
 ### Historial de v3
 

@@ -114,8 +114,14 @@
         return [e.id, e.iteraciones.toLocaleString('es-ES'), e.errores_inesperados, ms(e.lecturas_p95_ms), ms(e.escrituras_p95_ms)];
       }));
 
-    html += '<h2>P3: por endpoint</h2>';
-    html += '<p class="pendiente">' + v3.p95_por_endpoint.nota + '</p>';
+    html += '<h2>P3: p95 por endpoint con 400 VUs</h2>';
+    var e400 = v3.p95_por_endpoint.etapa_400_vus;
+    var endpoints = Object.keys(e400['v3-1']);
+    html += tabla(['Endpoint', 'v3-1', 'v3-2', 'v3-3'],
+      endpoints.map(function (n) {
+        return [n, ms(e400['v3-1'][n]), ms(e400['v3-2'][n]), ms(e400['v3-3'][n])];
+      }));
+    html += '<p>' + v3.p95_por_endpoint.lectura + ' ' + v3.p95_por_endpoint.orden_en_400_vus + '</p>';
 
     html += '<h2>Limitaciones</h2><ul>' +
       v3.limitaciones.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';

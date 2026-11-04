@@ -245,7 +245,7 @@
           "v3-3": 18.78
         }
       ],
-      "nota": "Las cifras globales de lecturas de los .txt (5,69 / 6,53 / 12,58) difieren de los JSON en 0,01 ms por redondeo."
+      "nota": "Coinciden con los resúmenes por etapa. Las cifras globales de los .txt difieren de los JSON en 0,01 ms por redondeo."
     },
     "p95_escrituras_400_vus_ms": {
       "v3-1": 9.04,
@@ -253,31 +253,56 @@
       "v3-3": 13.44
     },
     "p95_por_endpoint": {
-      "fuente": "Línea lat_* del .txt de cada repetición (toda la prueba, no por etapa).",
+      "fuente": "Etapa de 400 VUs (etapa 5) y líneas lat_* de los .txt de toda la prueba.",
       "unidad": "ms",
-      "v3-1": {
-        "GET /pistas": 6.0,
-        "GET /pistas/{id}": 6.19,
-        "GET /reservas": 4.9,
-        "POST /reservas": 5.17,
-        "DELETE /reservas/{id}": 3.86
+      "etapa_400_vus": {
+        "v3-1": {
+          "GET /pistas": 15.3,
+          "GET /pistas/{id}": 13.2,
+          "GET /reservas": 8.98,
+          "POST /reservas": 10.68,
+          "DELETE /reservas/{id}": 7.65
+        },
+        "v3-2": {
+          "GET /pistas": 11.7,
+          "GET /pistas/{id}": 11.19,
+          "GET /reservas": 7.11,
+          "POST /reservas": 8.73,
+          "DELETE /reservas/{id}": 5.87
+        },
+        "v3-3": {
+          "GET /pistas": 23.02,
+          "GET /pistas/{id}": 20.24,
+          "GET /reservas": 12.76,
+          "POST /reservas": 15.89,
+          "DELETE /reservas/{id}": 10.46
+        }
       },
-      "v3-2": {
-        "GET /pistas": 7.06,
-        "GET /pistas/{id}": 7.44,
-        "GET /reservas": 5.2,
-        "POST /reservas": 5.87,
-        "DELETE /reservas/{id}": 4.07
+      "ratio_400_vs_100_vus": {
+        "v3-1": {
+          "GET /pistas": 4.0,
+          "GET /pistas/{id}": 3.5,
+          "GET /reservas": 2.3,
+          "POST /reservas": 2.8,
+          "DELETE /reservas/{id}": 2.6
+        },
+        "v3-2": {
+          "GET /pistas": 3.7,
+          "GET /pistas/{id}": 3.3,
+          "GET /reservas": 2.0,
+          "POST /reservas": 2.5,
+          "DELETE /reservas/{id}": 2.3
+        },
+        "v3-3": {
+          "GET /pistas": 6.9,
+          "GET /pistas/{id}": 5.5,
+          "GET /reservas": 3.8,
+          "POST /reservas": 4.9,
+          "DELETE /reservas/{id}": 4.1
+        }
       },
-      "v3-3": {
-        "GET /pistas": 14.65,
-        "GET /pistas/{id}": 14.13,
-        "GET /reservas": 8.73,
-        "POST /reservas": 10.51,
-        "DELETE /reservas/{id}": 7.19
-      },
-      "orden": "GET /pistas y GET /pistas/{id} son los más altos en las tres repeticiones, después POST, GET /reservas y DELETE.",
-      "pendiente": "La subida por etapa en 400 VUs por endpoint requiere los CSV crudos."
+      "orden_en_400_vus": "GET /pistas > GET /pistas/{id} > POST /reservas > GET /reservas > DELETE /reservas/{id} en las tres repeticiones.",
+      "lectura": "La subida a 400 VUs va de 2,0 a 6,9 veces según endpoint y repetición. Todos suben; el orden se mantiene."
     },
     "cpu": {
       "estado": "verificado parcialmente",
@@ -319,7 +344,146 @@
       "GET /reservas devuelve también las reservas canceladas, así que su respuesta crece durante la prueba.",
       "La etapa de bajada dura 10 s y empieza con unos 400 VUs. No es una medición de descenso.",
       "Las ejecuciones anteriores a la corrección de systemTags se descartan."
-    ]
+    ],
+    "p95_por_etapa_y_endpoint": {
+      "fuente": "resultados/v3-N-etapas.txt, generado con scripts/analisis-etapas.py sobre el CSV crudo. Etapas por minuto desde la primera petición. Etapa 6 = bajada (10 s a ~400 VUs).",
+      "unidad": "ms",
+      "datos": {
+        "v3-1": {
+          "1": {
+            "GET /pistas": 9.65,
+            "GET /pistas/{id}": 6.87,
+            "GET /reservas": 7.76,
+            "POST /reservas": 8.53,
+            "DELETE /reservas/{id}": 6.28
+          },
+          "2": {
+            "GET /pistas": 3.83,
+            "GET /pistas/{id}": 3.8,
+            "GET /reservas": 3.85,
+            "POST /reservas": 3.86,
+            "DELETE /reservas/{id}": 2.98
+          },
+          "3": {
+            "GET /pistas": 4.54,
+            "GET /pistas/{id}": 5.07,
+            "GET /reservas": 3.56,
+            "POST /reservas": 3.91,
+            "DELETE /reservas/{id}": 2.73
+          },
+          "4": {
+            "GET /pistas": 4.01,
+            "GET /pistas/{id}": 4.41,
+            "GET /reservas": 3.16,
+            "POST /reservas": 3.54,
+            "DELETE /reservas/{id}": 2.48
+          },
+          "5": {
+            "GET /pistas": 15.3,
+            "GET /pistas/{id}": 13.2,
+            "GET /reservas": 8.98,
+            "POST /reservas": 10.68,
+            "DELETE /reservas/{id}": 7.65
+          },
+          "6": {
+            "GET /pistas": 3.46,
+            "GET /pistas/{id}": 3.82,
+            "GET /reservas": 4.03,
+            "POST /reservas": 3.07,
+            "DELETE /reservas/{id}": 2.89
+          }
+        },
+        "v3-2": {
+          "1": {
+            "GET /pistas": 1.51,
+            "GET /pistas/{id}": 0.94,
+            "GET /reservas": 1.64,
+            "POST /reservas": 2.05,
+            "DELETE /reservas/{id}": 1.05
+          },
+          "2": {
+            "GET /pistas": 3.14,
+            "GET /pistas/{id}": 3.44,
+            "GET /reservas": 3.5,
+            "POST /reservas": 3.43,
+            "DELETE /reservas/{id}": 2.55
+          },
+          "3": {
+            "GET /pistas": 3.98,
+            "GET /pistas/{id}": 4.27,
+            "GET /reservas": 2.99,
+            "POST /reservas": 3.46,
+            "DELETE /reservas/{id}": 2.32
+          },
+          "4": {
+            "GET /pistas": 4.8,
+            "GET /pistas/{id}": 5.27,
+            "GET /reservas": 3.26,
+            "POST /reservas": 3.65,
+            "DELETE /reservas/{id}": 2.62
+          },
+          "5": {
+            "GET /pistas": 11.7,
+            "GET /pistas/{id}": 11.19,
+            "GET /reservas": 7.11,
+            "POST /reservas": 8.73,
+            "DELETE /reservas/{id}": 5.87
+          },
+          "6": {
+            "GET /pistas": 10.84,
+            "GET /pistas/{id}": 11.63,
+            "GET /reservas": 7.96,
+            "POST /reservas": 8.51,
+            "DELETE /reservas/{id}": 6.24
+          }
+        },
+        "v3-3": {
+          "1": {
+            "GET /pistas": 1.63,
+            "GET /pistas/{id}": 0.96,
+            "GET /reservas": 1.65,
+            "POST /reservas": 2.11,
+            "DELETE /reservas/{id}": 1.03
+          },
+          "2": {
+            "GET /pistas": 3.34,
+            "GET /pistas/{id}": 3.66,
+            "GET /reservas": 3.39,
+            "POST /reservas": 3.25,
+            "DELETE /reservas/{id}": 2.57
+          },
+          "3": {
+            "GET /pistas": 5.08,
+            "GET /pistas/{id}": 5.13,
+            "GET /reservas": 3.7,
+            "POST /reservas": 4.11,
+            "DELETE /reservas/{id}": 2.94
+          },
+          "4": {
+            "GET /pistas": 9.23,
+            "GET /pistas/{id}": 8.68,
+            "GET /reservas": 5.9,
+            "POST /reservas": 6.96,
+            "DELETE /reservas/{id}": 5.01
+          },
+          "5": {
+            "GET /pistas": 23.02,
+            "GET /pistas/{id}": 20.24,
+            "GET /reservas": 12.76,
+            "POST /reservas": 15.89,
+            "DELETE /reservas/{id}": 10.46
+          },
+          "6": {
+            "GET /pistas": 22.6,
+            "GET /pistas/{id}": 21.51,
+            "GET /reservas": 13.52,
+            "POST /reservas": 16.59,
+            "DELETE /reservas/{id}": 10.65
+          }
+        }
+      },
+      "peticiones_por_etapa_suma_igual_a_prueba": true
+    }
   },
   "predicciones": {
     "v2": [

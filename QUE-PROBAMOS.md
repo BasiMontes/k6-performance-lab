@@ -58,7 +58,7 @@ Los umbrales se fijaron antes de la primera prueba oficial. Las cifras 100 y 200
 6. **Aviso de series temporales en k6.** En v3, k6 avisa de más de 400.000 series incluso tras corregir `systemTags`. La causa no está identificada. No afecta a los umbrales, pero aumenta la carga de k6.
 7. **Punto de rotura no encontrado.** La prueba más alta llega a 400 VUs sin errores. No se ha probado si hay degradación de errores por encima de esa carga. Decisión de cierre: no se hace v4 (500–600 VUs); el punto de rotura queda como limitación.
 8. **Variabilidad entre repeticiones.** En v3 la latencia de lecturas a 400 VUs va de 10 a 19 ms según la ejecución. La causa de esa diferencia no está confirmada.
-9. **CSV crudos fuera del repo.** Los ficheros de resumen están en `resultados/`, pero los CSV crudos no. Las cifras por etapa de v3 no se pueden reproducir desde el repo.
+9. **CSV crudos fuera del repo.** Los CSV crudos (unos 375 MB cada uno) no están en el repo. Las cifras por etapa y endpoint de v3 salen de `resultados/v3-N-etapas.txt`, generados con `scripts/analisis-etapas.py`, y sus totales cuadran con las peticiones de la prueba.
 
 ## Qué no afirmamos
 
