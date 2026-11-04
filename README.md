@@ -16,7 +16,7 @@ Medir cómo se comporta la API bajo carga creciente y convertir los umbrales de 
 
 ## Entorno
 
-- Mac de desarrollo, mismo equipo para k6 y la API. Cada cifra declara chip, núcleos, RAM, versión de k6 y de Node.
+- Mac de desarrollo (MacBook Air, Apple M3, 8 núcleos, 16 GB), mismo equipo para k6 y la API. Cada cifra declara chip, núcleos, RAM, versión de k6 y de Node.
 - Node 24 (`nvm use` o `fnm use`).
 - Aplicación: https://github.com/BasiMontes/api-contract-tests, arrancada en local.
 
@@ -55,7 +55,7 @@ El cambio se decidió tras ver `rampa-1`, así que v1 y v2 no son comparables en
 
 ## Resultados v2 (3 ejecuciones)
 
-Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución. Chip, núcleos y RAM del Mac: pendiente de anotar. Salidas completas en `resultados/v2-1.txt`, `v2-2.txt` y `v2-3.txt`.
+Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución. Mac: MacBook Air con Apple M3, 8 núcleos (4 de rendimiento y 4 de eficiencia) y 16 GB de RAM. Salidas completas en `resultados/v2-1.txt`, `v2-2.txt` y `v2-3.txt`.
 
 | Ejecución | Iteraciones | Errores inesperados | Reservas en 409 | p95 lecturas | p95 escrituras |
 |---|---|---|---|---|---|
@@ -116,7 +116,7 @@ Hipótesis cualitativas, sin cifras:
 
 ## Resultados v3 (3 repeticiones oficiales)
 
-Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución, script con `systemTags` sin `url`. Chip, núcleos y RAM del Mac: pendiente de anotar. Ficheros: `resultados/v3-1.txt`, `v3-2.txt`, `v3-3.txt` (resumen), `v3-N-raw.csv` (datos crudos) y `cpu-v3-N.txt`.
+Condiciones: k6 2.3.0, Node 24.15.0, API reiniciada antes de cada ejecución, script con `systemTags` sin `url`. Mac: MacBook Air con Apple M3, 8 núcleos (4 de rendimiento y 4 de eficiencia) y 16 GB de RAM. Ficheros: `resultados/v3-1.txt`, `v3-2.txt`, `v3-3.txt` (resumen), `v3-N.json` y `cpu-v3-N.txt`. Los CSV crudos (`v3-N-raw.csv`) no están en el repo.
 
 Resumen global de k6 (p95 de toda la prueba):
 
@@ -146,15 +146,15 @@ Escrituras a 400 VUs: 9,04 / 7,30 / 13,44 ms (mínimo, mediana y máximo: 7,30 /
 
 Conclusiones:
 
-- **P1:** la latencia empieza a subir entre 200 y 300 VUs, y el salto más claro está entre 300 y 400. A 400 VUs el p95 de lecturas está entre 10 y 19 ms, muy por debajo del umbral de 100 ms. No aparecen errores hasta 400 VUs, que es el máximo probado. La magnitud varía bastante entre repeticiones: en la v3-3 el codo empieza antes y es más alto. Causa no confirmada: en las muestras de 30 s del tramo de carga, la CPU de la API no llega al 100 % de un núcleo (una muestra temprana sí, probablemente durante `setup()`), y el Mac tiene entre un 57 % y un 85 % de inactividad en todo el ensayo.
+- **P1:** la latencia empieza a subir entre 200 y 300 VUs, y el salto más claro está entre 300 y 400. A 400 VUs el p95 de lecturas está entre 10 y 19 ms, muy por debajo del umbral de 100 ms. No aparecen errores hasta 400 VUs, que es el máximo probado. La magnitud varía bastante entre repeticiones: en la v3-3 el codo empieza antes y es más alto. Causa no confirmada: la CPU de la API no se puede atribuir con certeza en las muestras de 30 s, y el Mac tiene entre un 32 % y un 86 % de inactividad según la muestra.
 - **P2:** los umbrales se cumplen en las tres repeticiones, con un margen de casi 8 veces en lecturas (peor caso: 12,58 ms frente a 100 ms) y más de 20 veces en escrituras (8,83 ms frente a 200 ms).
-- **P3:** en el tramo de 400 VUs todos los endpoints suben a la vez, entre 2,5 y 4 veces. `GET /pistas` y `GET /pistas/{id}` son los más altos, por encima de `POST /reservas`, `GET /reservas` y `DELETE`. El patrón es común, así que apunta a un cuello compartido más que al coste de cada endpoint.
+- **P3:** con los datos de toda la prueba (líneas `lat_*` de los `.txt`), el orden se mantiene en las tres repeticiones: `GET /pistas` y `GET /pistas/{id}` son los más altos (6–15 ms), después `POST /reservas`, `GET /reservas` y `DELETE` (4–11 ms). La subida por etapa en 400 VUs por endpoint no está verificada: requiere los CSV crudos. El orden común apunta a un cuello compartido, pero no está demostrado.
 
 Predicciones v3 (contrastadas):
 
 - Lecturas < 100 ms hasta 400 VUs: **se cumple**.
 - Errores inesperados cero hasta 400 VUs: **se cumple**.
-- La API se acerca al 100 % de un núcleo en el tramo de latencia alta: **no se cumple**. La CPU de `node` llega a 50–65 % al final de la prueba, así que el codo no parece venir de la CPU de la API.
+- La API se acerca al 100 % de un núcleo en el tramo de latencia alta: **no concluyente**, la atribución por proceso no está confirmada. Los `top` muestran procesos `node` a 171–195 % en alguna muestra, pero sin el PID de la API no se puede atribuir la carga.
 - `POST /reservas` más lento que `DELETE`: **se cumple** en todas las etapas.
 - La latencia de `GET /reservas` crece durante la prueba: **no se cumple**. En las etapas centrales se mantiene estable.
 - Las lecturas aguantan más carga que las escrituras (predicción del alcance): **no se cumple**. Las lecturas son las que más suben a 400 VUs.
@@ -222,8 +222,8 @@ Sin cifras. Hipótesis cualitativas:
 
 ## Documentación
 
-- `resultados/resultados.json`: cada cifra con su condición, comando y fichero de origen.
+- `resultados/resultados.json`: cada cifra con su condición, comando y fichero de origen. Los ficheros de salida de k6 ya están en `resultados/`.
 - `QUE-PROBAMOS.md`: alcance, escenarios, umbrales y limitaciones.
 - `docs/`: página de resultados (GitHub Pages), generada desde el JSON.
 
-Los ficheros de salida de k6 (`resultados/*.txt`, `*.json`, `*-raw.csv`, `cpu-*.txt`) se generan en el Mac. Pendiente de subir.
+Los CSV crudos (`*-raw.csv`) no están en el repo.

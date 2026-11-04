@@ -11,7 +11,7 @@ Este documento delimita lo que mide este proyecto y lo que no. Las cifras están
 
 ## Entorno
 
-- Un único Mac para k6 y la API, en la misma máquina. Chip, núcleos y RAM: pendientes de anotar en el README y en el JSON.
+- Un único MacBook Air para k6 y la API, en la misma máquina: Apple M3, 8 núcleos (4 de rendimiento y 4 de eficiencia), 16 GB de RAM.
 - k6 2.3.0, Node 24.15.0.
 - Red: localhost. No hay latencia de red real.
 - Sin servicios de terceros ni ejecuciones desde la nube.
@@ -58,7 +58,7 @@ Los umbrales se fijaron antes de la primera prueba oficial. Las cifras 100 y 200
 6. **Aviso de series temporales en k6.** En v3, k6 avisa de más de 400.000 series incluso tras corregir `systemTags`. La causa no está identificada. No afecta a los umbrales, pero aumenta la carga de k6.
 7. **Punto de rotura no encontrado.** La prueba más alta llega a 400 VUs sin errores. No se ha probado si hay degradación de errores por encima de esa carga.
 8. **Variabilidad entre repeticiones.** En v3 la latencia de lecturas a 400 VUs va de 10 a 19 ms según la ejecución. La causa de esa diferencia no está confirmada.
-9. **Datos crudos fuera del repo.** Los CSV crudos y los ficheros de resumen se generan en el Mac. Hasta que se suban, las cifras por endpoint y por etapa no se pueden verificar desde el repo.
+9. **CSV crudos fuera del repo.** Los ficheros de resumen están en `resultados/`, pero los CSV crudos no. Las cifras por etapa de v3 no se pueden reproducir desde el repo.
 
 ## Qué no afirmamos
 

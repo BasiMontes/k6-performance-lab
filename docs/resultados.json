@@ -7,13 +7,14 @@
     "api": "api-contract-tests, en memoria, arrancada con npm run server y reiniciada antes de cada ejecución",
     "red": "localhost, sin red real",
     "mac": {
-      "chip": "PENDIENTE",
-      "nucleos": "PENDIENTE",
-      "ram": "PENDIENTE",
-      "nota": "Pendiente de anotar por el autor desde el Mac (chip, núcleos y RAM)."
+      "equipo": "MacBook Air",
+      "chip": "Apple M3",
+      "nucleos": "8 (4 de rendimiento y 4 de eficiencia)",
+      "ram": "16 GB",
+      "fuente": "system_profiler SPHardwareDataType"
     }
   },
-  "ficheros_en_mac_no_en_repo": "resultados/*.txt, resultados/*.json, resultados/cpu-*.txt y resultados/*-raw.csv se generan en el Mac y no están en el repo. Este JSON los referencia, pero no se pueden verificar desde el repo hasta que se suban.",
+  "ficheros_en_mac_no_en_repo": "resultados/*.txt, *.json y cpu-*.txt están en el repo (commit 791769a). Los CSV crudos (*-raw.csv) no se han subido: las cifras por etapa de v3 no se pueden reproducir desde el repo.",
   "umbrales": {
     "lecturas_p95_ms": 100,
     "escrituras_p95_ms": 200,
@@ -57,7 +58,7 @@
       "p95_por_endpoint_ms": {
         "GET /pistas": 6.35,
         "GET /pistas/{id}": 6.94,
-        "GET /reservas": 4.70,
+        "GET /reservas": 4.7,
         "POST /reservas": 5.35,
         "DELETE /reservas/{id}": 3.69
       },
@@ -75,7 +76,7 @@
         "GET /pistas": 4.17,
         "GET /pistas/{id}": 4.25,
         "GET /reservas": 3.58,
-        "POST /reservas": 3.60,
+        "POST /reservas": 3.6,
         "DELETE /reservas/{id}": 2.73
       },
       "nota": "Sigue el aviso de más de 400.000 series: la etiqueta url (con el ID) se seguía añadiendo."
@@ -130,16 +131,37 @@
       }
     ],
     "resumen": {
-      "lecturas_p95_ms": {"minimo": 5.28, "mediana": 7.26, "maximo": 9.35},
-      "escrituras_p95_ms": {"minimo": 6.16, "mediana": 7.89, "maximo": 9.42}
+      "lecturas_p95_ms": {
+        "minimo": 5.28,
+        "mediana": 7.26,
+        "maximo": 9.35
+      },
+      "escrituras_p95_ms": {
+        "minimo": 6.16,
+        "mediana": 7.89,
+        "maximo": 9.42
+      }
     },
     "wilson_errores_cero": {
       "nota": "Límite superior de Wilson al 95 % para 0 eventos sobre peticiones de la prueba (sin setup).",
-      "v2-1": {"n": 71312, "limite_superior_pct": 0.00539},
-      "v2-2": {"n": 71536, "limite_superior_pct": 0.00537},
-      "v2-3": {"n": 71696, "limite_superior_pct": 0.00536},
-      "v2_agregado": {"n": 214544, "limite_superior_pct": 0.00179}
-    }
+      "v2-1": {
+        "n": 71312,
+        "limite_superior_pct": 0.00539
+      },
+      "v2-2": {
+        "n": 71536,
+        "limite_superior_pct": 0.00537
+      },
+      "v2-3": {
+        "n": 71696,
+        "limite_superior_pct": 0.00536
+      },
+      "v2_agregado": {
+        "n": 214544,
+        "limite_superior_pct": 0.00179
+      }
+    },
+    "nota_fuente": "Las cifras de lecturas y escrituras de v2 salen de los subgrupos endpoint:lectura y endpoint:escritura de los .txt (las umbrales de v2 usan esa etiqueta). El p95 global de http_req_duration es algo distinto: 9,66 / 7,79 / 5,74 ms."
   },
   "v3_oficial": {
     "escenario": "scripts/rampa-v3.js: 50, 100, 200, 300 y 400 VUs, un minuto por etapa, bajada de 10 s. 400 usuarios creados en setup. setupTimeout 5 min.",
@@ -184,33 +206,112 @@
       }
     ],
     "resumen": {
-      "lecturas_p95_ms": {"minimo": 5.69, "mediana": 6.53, "maximo": 12.58},
-      "escrituras_p95_ms": {"minimo": 4.57, "mediana": 5.01, "maximo": 8.83}
+      "lecturas_p95_ms": {
+        "minimo": 5.69,
+        "mediana": 6.53,
+        "maximo": 12.58
+      },
+      "escrituras_p95_ms": {
+        "minimo": 4.57,
+        "mediana": 5.01,
+        "maximo": 8.83
+      }
     },
     "p95_lecturas_por_etapa_ms": {
       "fuente": "scripts/analisis-etapas.py sobre resultados/v3-N-raw.csv",
       "etapas": [
-        {"vus_fin_etapa": 100, "v3-1": 3.84, "v3-2": 3.36, "v3-3": 3.43},
-        {"vus_fin_etapa": 200, "v3-1": 4.45, "v3-2": 3.85, "v3-3": 4.62},
-        {"vus_fin_etapa": 300, "v3-1": 3.88, "v3-2": 4.48, "v3-3": 7.90},
-        {"vus_fin_etapa": 400, "v3-1": 11.93, "v3-2": 10.00, "v3-3": 18.78}
-      ]
+        {
+          "vus_fin_etapa": 100,
+          "v3-1": 3.84,
+          "v3-2": 3.36,
+          "v3-3": 3.43
+        },
+        {
+          "vus_fin_etapa": 200,
+          "v3-1": 4.45,
+          "v3-2": 3.85,
+          "v3-3": 4.62
+        },
+        {
+          "vus_fin_etapa": 300,
+          "v3-1": 3.88,
+          "v3-2": 4.48,
+          "v3-3": 7.9
+        },
+        {
+          "vus_fin_etapa": 400,
+          "v3-1": 11.93,
+          "v3-2": 10.0,
+          "v3-3": 18.78
+        }
+      ],
+      "nota": "Las cifras globales de lecturas de los .txt (5,69 / 6,53 / 12,58) difieren de los JSON en 0,01 ms por redondeo."
     },
-    "p95_escrituras_400_vus_ms": {"v3-1": 9.04, "v3-2": 7.30, "v3-3": 13.44},
+    "p95_escrituras_400_vus_ms": {
+      "v3-1": 9.04,
+      "v3-2": 7.3,
+      "v3-3": 13.44
+    },
     "p95_por_endpoint": {
-      "estado": "PENDIENTE",
-      "nota": "Las cifras por endpoint de las repeticiones oficiales no están en el repo. Se calculan con scripts/analisis-etapas.py sobre los CSV crudos cuando se suban. Las afirmaciones de P3 del README no se pueden verificar hasta entonces."
+      "fuente": "Línea lat_* del .txt de cada repetición (toda la prueba, no por etapa).",
+      "unidad": "ms",
+      "v3-1": {
+        "GET /pistas": 6.0,
+        "GET /pistas/{id}": 6.19,
+        "GET /reservas": 4.9,
+        "POST /reservas": 5.17,
+        "DELETE /reservas/{id}": 3.86
+      },
+      "v3-2": {
+        "GET /pistas": 7.06,
+        "GET /pistas/{id}": 7.44,
+        "GET /reservas": 5.2,
+        "POST /reservas": 5.87,
+        "DELETE /reservas/{id}": 4.07
+      },
+      "v3-3": {
+        "GET /pistas": 14.65,
+        "GET /pistas/{id}": 14.13,
+        "GET /reservas": 8.73,
+        "POST /reservas": 10.51,
+        "DELETE /reservas/{id}": 7.19
+      },
+      "orden": "GET /pistas y GET /pistas/{id} son los más altos en las tres repeticiones, después POST, GET /reservas y DELETE.",
+      "pendiente": "La subida por etapa en 400 VUs por endpoint requiere los CSV crudos."
     },
     "cpu": {
-      "estado": "PENDIENTE de verificar",
-      "nota": "El README cita que node llega a 50–65 % de un núcleo al final y que el Mac queda entre 57 % y 85 % inactivo. Proceden de resultados/cpu-v3-N.txt, que no están en el repo. El PID de la API no está confirmado."
+      "estado": "verificado parcialmente",
+      "fuente": "resultados/cpu-v3-N.txt, muestreo con top cada 30 s",
+      "inactividad_del_mac_pct": {
+        "v3-1": "32,2 a 85,9",
+        "v3-2": "54,5 a 84,6",
+        "v3-3": "57,5 a 85,6"
+      },
+      "procesos_node_max_pct_por_muestra": {
+        "v3-1": 171.1,
+        "v3-2": 195.0,
+        "v3-3": 183.7
+      },
+      "nota": "No se puede atribuir la CPU a la API: varios procesos node aparecen con porcentajes altos en distintas muestras y el PID de la API no está confirmado. Confirmar con lsof -nP -iTCP:3000 -sTCP:LISTEN en la próxima medición."
     },
     "wilson_errores_cero": {
       "nota": "Límite superior de Wilson al 95 % para 0 eventos sobre peticiones de la prueba (sin setup).",
-      "v3-1": {"n": 262950, "limite_superior_pct": 0.00146},
-      "v3-2": {"n": 262805, "limite_superior_pct": 0.00146},
-      "v3-3": {"n": 261545, "limite_superior_pct": 0.00147},
-      "v3_agregado": {"n": 787300, "limite_superior_pct": 0.00049}
+      "v3-1": {
+        "n": 262950,
+        "limite_superior_pct": 0.00146
+      },
+      "v3-2": {
+        "n": 262805,
+        "limite_superior_pct": 0.00146
+      },
+      "v3-3": {
+        "n": 261545,
+        "limite_superior_pct": 0.00147
+      },
+      "v3_agregado": {
+        "n": 787300,
+        "limite_superior_pct": 0.00049
+      }
     },
     "limitaciones": [
       "k6 avisa de más de 400.000 series temporales incluso después de la corrección de systemTags. Causa no identificada. No afecta a los umbrales.",
@@ -222,23 +323,53 @@
   },
   "predicciones": {
     "v2": [
-      {"prediccion": "Lecturas p95 < 100 ms hasta 100 VUs", "resultado": "se cumple"},
-      {"prediccion": "Lecturas incumplen con 200 VUs", "resultado": "no se cumple"},
-      {"prediccion": "Proporción de 409 < 1 %", "resultado": "se cumple"},
-      {"prediccion": "k6 consume mucha CPU con 200 VUs", "resultado": "no se cumple en la muestra de v2-3 (parcial)"}
+      {
+        "prediccion": "Lecturas p95 < 100 ms hasta 100 VUs",
+        "resultado": "se cumple"
+      },
+      {
+        "prediccion": "Lecturas incumplen con 200 VUs",
+        "resultado": "no se cumple"
+      },
+      {
+        "prediccion": "Proporción de 409 < 1 %",
+        "resultado": "se cumple"
+      },
+      {
+        "prediccion": "k6 consume mucha CPU con 200 VUs",
+        "resultado": "no se cumple en la muestra de v2-3 (parcial)"
+      }
     ],
     "v3": [
-      {"prediccion": "Lecturas < 100 ms hasta 400 VUs", "resultado": "se cumple"},
-      {"prediccion": "Errores inesperados cero hasta 400 VUs", "resultado": "se cumple"},
-      {"prediccion": "node cerca del 100 % de un núcleo en el tramo de latencia alta", "resultado": "no se cumple"},
-      {"prediccion": "POST /reservas más lento que DELETE en todas las etapas", "resultado": "se cumple"},
-      {"prediccion": "La latencia de GET /reservas crece durante la prueba", "resultado": "no se cumple"},
-      {"prediccion": "Las lecturas aguantan más carga que las escrituras", "resultado": "no se cumple"}
+      {
+        "prediccion": "Lecturas < 100 ms hasta 400 VUs",
+        "resultado": "se cumple"
+      },
+      {
+        "prediccion": "Errores inesperados cero hasta 400 VUs",
+        "resultado": "se cumple"
+      },
+      {
+        "prediccion": "node cerca del 100 % de un núcleo en el tramo de latencia alta",
+        "resultado": "no concluyente: la atribución de CPU a la API no está confirmada"
+      },
+      {
+        "prediccion": "POST /reservas más lento que DELETE en todas las etapas",
+        "resultado": "se cumple"
+      },
+      {
+        "prediccion": "La latencia de GET /reservas crece durante la prueba",
+        "resultado": "no se cumple"
+      },
+      {
+        "prediccion": "Las lecturas aguantan más carga que las escrituras",
+        "resultado": "no se cumple"
+      }
     ]
   },
   "preguntas": {
-    "P1": "Abierta. El codo está entre 200 y 400 VUs, sin errores hasta 400 VUs. Causa no confirmada. Pendiente de decidir si se hace v4 (500–600 VUs).",
+    "P1": "Abierta. El codo está entre 200 y 400 VUs, sin errores hasta 400 VUs. Causa no confirmada: la CPU de la API no se puede atribuir con certeza. Pendiente de decidir si se hace v4 (500–600 VUs).",
     "P2": "Respondida para el escenario probado: los umbrales se cumplen en todas las ejecuciones oficiales.",
-    "P3": "Parcial. Hay un patrón común a todos los endpoints en 400 VUs. El orden por endpoint está pendiente de verificar con los CSV."
+    "P3": "Parcial. Con los datos de toda la prueba, GET /pistas y GET /pistas/{id} son los más altos en las tres repeticiones. La subida por etapa por endpoint está pendiente de los CSV crudos."
   }
 }
