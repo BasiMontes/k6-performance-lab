@@ -59,6 +59,9 @@ const latencia = {
 export const options = {
   // El registro y el login de 400 usuarios tardan más de los 60 s por defecto (~100 ms por petición).
   setupTimeout: '5m',
+  // k6 añade por defecto la etiqueta `url`, que contiene los IDs: una serie por reserva.
+  // Se quita; `name` ya agrupa las peticiones por endpoint.
+  systemTags: ['status', 'method', 'name', 'group', 'check', 'error', 'error_code', 'expected_response', 'scenario'],
   stages: [
     { duration: '1m', target: 50 },
     { duration: '1m', target: 100 },

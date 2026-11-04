@@ -117,6 +117,7 @@ Hipótesis cualitativas, sin cifras:
 ### Historial de v3
 
 - **v3-1, primera medición (descartada para la curva).** Umbrales cumplidos: lecturas p95 6,14 ms, escrituras p95 4,66 ms, 0 errores inesperados y 0 reservas en 409 (52.554 iteraciones). Por endpoint, p95 de `GET /pistas` 6,35 ms, `GET /pistas/{id}` 6,94 ms, `GET /reservas` 4,70 ms, `POST /reservas` 5,35 ms y `DELETE` 3,69 ms. Pero el resumen es de toda la prueba y no tiene datos por etapa, así que P1 no se responde con ella. Además, k6 avisó de más de 400.000 series temporales por las URL con ID. Se corrige en el script (nombres fijos) y se guardan datos crudos. Las tres repeticiones oficiales se harán con el script corregido.
+- **v3-1, segunda medición (con CSV, descartada).** Umbrales cumplidos: lecturas p95 4,01 ms, escrituras p95 3,22 ms, 0 errores y 0 en 409 (52.700 iteraciones). Por endpoint, p95 de 4,17 / 4,25 / 3,58 / 3,60 / 2,73 ms (pistas, detalle, listar, crear, cancelar). Sigue el aviso de más de 400.000 series: el nombre fijo no bastaba, porque k6 también etiqueta cada petición con `url` (con el ID). Se corrige con `systemTags` sin `url`. Las cifras de la primera medición y de esta difieren en torno a un 30 %, lo que ya indica la variabilidad entre ejecuciones.
 - Captura de CPU durante v3-1: el proceso `node` (probablemente la API) subió hasta unos 50 % de un núcleo, y k6 hasta un 32 %, con el sistema al 80 % inactivo. Sin saturación del núcleo, con la alineación temporal aproximada.
 
 ## Escenario oficial v2 (`scripts/rampa-v2.js`)
