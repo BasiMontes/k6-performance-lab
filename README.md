@@ -94,7 +94,8 @@ Objetivo: encontrar el punto de degradación (P1) y separar la sensibilidad por 
 - `setupTimeout` de 5 minutos. Primera ejecución (v3-1, sin medir): `setup` superó el límite de 60 s por defecto. En ese minuto se completaron 598 peticiones, unas 10 por segundo, con `node` al 86–99,8 % de un núcleo. El registro y el login, de ~100 ms cada uno, son caros en CPU; con 200 usuarios en v2 cabía justo en el límite.
 - Por iteración: `GET /pistas`, `GET /pistas/{id}`, `POST /reservas`, `GET /reservas` y `DELETE /reservas/{id}` (cancelación de la reserva recién creada).
 - Asignación de reservas: `r = u0 % 7` (día), `h = floor(u0 / 7) % 10` (franja), `p = floor(u0 / 70) % 15` (pista). Cada usuario tiene una combinación única, así que no hay solapes hasta 1.050 usuarios. Cambio respecto a v2: con 400 usuarios, la pista solo varía entre 6 de las 15 (`p` de 0 a 5).
-- Latencia por endpoint en métricas propias (`lat_*`) para P3. Los umbrales son los mismos que en v2 y se aplican por grupo (`grupo:lectura` y `grupo:escritura`).
+- Latencia por endpoint en métricas propias (`lat_*`) para P3. Las peticiones con ID en la URL llevan un `name` fijo, para no crear una serie por cada ID.
+- Cada ejecución guarda datos crudos con `--out csv=resultados/v3-N-raw.csv`, para calcular el p95 por etapa (P1). Los umbrales son los mismos que en v2 y se aplican por grupo (`grupo:lectura` y `grupo:escritura`).
 - Los 409 siguen contándose aparte en `reservas_409`. Con esta asignación deben ser cero; cualquier 409 es un problema del escenario.
 
 Limitaciones que afectan a esta versión:
@@ -112,6 +113,11 @@ Hipótesis cualitativas, sin cifras:
 - Errores inesperados: cero hasta 400 VUs. Si aparecen, serán tiempos de espera o errores 5xx en las etapas más altas.
 - Node ejecuta el código de la API en un solo hilo. Si la latencia se dispara en 300 o 400 VUs, el proceso `node` debería acercarse al 100 % de un núcleo en ese tramo. Si no se acerca, la causa no es la CPU de la API.
 - Si alguna predicción no se cumple, se anota aquí con la explicación. Si la prueba falla, primero se decide si el fallo es de la prueba o del producto.
+
+### Historial de v3
+
+- **v3-1, primera medición (descartada para la curva).** Umbrales cumplidos: lecturas p95 6,14 ms, escrituras p95 4,66 ms, 0 errores inesperados y 0 reservas en 409 (52.554 iteraciones). Por endpoint, p95 de `GET /pistas` 6,35 ms, `GET /pistas/{id}` 6,94 ms, `GET /reservas` 4,70 ms, `POST /reservas` 5,35 ms y `DELETE` 3,69 ms. Pero el resumen es de toda la prueba y no tiene datos por etapa, así que P1 no se responde con ella. Además, k6 avisó de más de 400.000 series temporales por las URL con ID. Se corrige en el script (nombres fijos) y se guardan datos crudos. Las tres repeticiones oficiales se harán con el script corregido.
+- Captura de CPU durante v3-1: el proceso `node` (probablemente la API) subió hasta unos 50 % de un núcleo, y k6 hasta un 32 %, con el sistema al 80 % inactivo. Sin saturación del núcleo, con la alineación temporal aproximada.
 
 ## Escenario oficial v2 (`scripts/rampa-v2.js`)
 

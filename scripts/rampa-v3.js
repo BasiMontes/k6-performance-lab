@@ -117,6 +117,7 @@ export default function (data) {
   const pista = PISTAS[(__VU + __ITER) % PISTAS.length];
   const detalle = http.get(`${BASE}/pistas/${pista}`, {
     tags: { grupo: 'lectura', endpoint: 'pista_detalle' },
+    name: 'GET /pistas/{id}', // nombre fijo: evita una serie de métricas por cada id
   });
   check(detalle, { 'GET /pistas/{id} 200': (r) => r.status === 200 });
   latencia.pista_detalle.add(detalle.timings.duration);
@@ -160,6 +161,7 @@ export default function (data) {
     const cancelacion = http.del(`${BASE}/reservas/${id}`, null, {
       headers: auth,
       tags: { grupo: 'escritura', endpoint: 'reserva_cancelar' },
+      name: 'DELETE /reservas/{id}', // nombre fijo: evita una serie de métricas por cada reserva
       responseCallback: http.expectedStatuses(204),
     });
     check(cancelacion, { 'DELETE /reservas/{id} 204': (r) => r.status === 204 });
