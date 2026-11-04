@@ -44,7 +44,35 @@ Antes de cada ejecución completa: parar el servidor (Ctrl+C) y volver a arranca
 
 Las cifras 100 y 200 ms vienen de la literatura de usabilidad, no se han medido en este sistema. La calibración en reposo (1 VU, solo lecturas) dio p95 de 1,99 ms.
 
-## Escenario oficial (`scripts/rampa.js`)
+## Historial de versiones
+
+- **v1 (`scripts/rampa.js`), descartada.** Rampa 5-10-20-50 VUs. Primera ejecución: lecturas p95 1,77 ms, escrituras p95 2,66 ms, 0 errores inesperados, **88,3 % de 409**. No se encontró punto de degradación. Se descarta porque (a) el 88 % de las escrituras eran rechazos por límites o solapes, así que la latencia de escritura no era la de crear reservas, y (b) 50 VUs no llegan al punto de degradación. Solo se hizo una repetición; no se usa como resultado final.
+- **v2 (`scripts/rampa-v2.js`), oficial.** Rampa 10-25-50-100-200 VUs, un minuto cada etapa, bajada de 10 s. Cambia la asignación de reservas: cada usuario reserva un día cada 7 días y en una pista y franja asignadas sin colisiones entre usuarios. Los 409 esperados son casi nulos.
+
+El cambio se decidió tras ver `rampa-1`, así que v1 y v2 no son comparables entre sí en la parte de escrituras.
+
+## Escenario oficial v2 (`scripts/rampa-v2.js`)
+
+- Rampa: 10, 25, 50, 100 y 200 usuarios virtuales, un minuto por etapa, y bajada de 10 s.
+- Cada usuario virtual tiene su propio usuario de la API, creado en `setup`: 200 en total.
+- Por iteración: `GET /pistas`, `GET /pistas/{id}`, `POST /reservas`, `GET /reservas`.
+- Los 409 siguen contándose aparte en `reservas_409`. Con v2 deberían ser casi nulos; si no lo son, es un problema del escenario, no de la API.
+
+## Predicciones v2 (anotadas antes de la primera ejecución)
+
+Sin cifras. Hipótesis cualitativas:
+
+- Las escrituras de v2 medirán sobre todo creación real, así que su p95 será algo mayor que en v1.
+- Las lecturas cumplirán p95 < 100 ms hasta 100 VUs. Puede que se incumpla en la etapa de 200 VUs.
+- La proporción de 409 será casi nula (menos del 1 %).
+- En la etapa de 200 VUs, el propio k6 puede consumir mucha CPU del Mac. Si pasa, los resultados de esa etapa mezclan el coste de k6 con el de la API, y se declara.
+- Si alguna predicción no se cumple, se anota aquí con la explicación.
+
+## Predicciones v1 (históricas)
+
+Ver el historial arriba: se cumplieron lecturas < 100 ms, escrituras más lentas que lecturas y 409 altos.
+
+## Escenario v1 (`scripts/rampa.js`, histórico)
 
 - Rampa: 5, 10, 20 y 50 usuarios virtuales, un minuto cada etapa, y bajada de 10 s. k6 interpola entre etapas.
 - Cada usuario virtual tiene su propio usuario de la API, creado en `setup`.
