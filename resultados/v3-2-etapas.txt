@@ -1,0 +1,16 @@
+Etapa  VUs al final  Lecturas p95  Escrituras p95  Peticiones
+    1            50        1.45 ms          1.80 ms        7370
+    2           100        3.36 ms          3.04 ms       22075
+    3           200        3.85 ms          3.05 ms       44305
+    4           300        4.48 ms          3.23 ms       73853
+    5           400       10.00 ms          7.30 ms      103716
+    6        bajada       10.11 ms          7.44 ms       11486
+
+p95 por endpoint (ms):
+Etapa         GET /pistas    GET /pistas/{id}       GET /reservas      POST /reservas  DELETE /reservas/{id}
+    1                1.51                0.94                1.64                2.05                1.05
+    2                3.14                3.44                3.50                3.43                2.55
+    3                3.98                4.27                2.99                3.46                2.32
+    4                4.80                5.27                3.26                3.65                2.62
+    5               11.70               11.19                7.11                8.73                5.87
+    6               10.84               11.63                7.96                8.51                6.24
