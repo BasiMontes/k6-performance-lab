@@ -1,0 +1,132 @@
+CPU usage: 25.73% user, 16.62% sys, 57.64% idle 
+90026  node             0.0 
+90005  node             0.0 
+90004  node             0.0 
+89991  node             0.0 
+44135  node             0.0 
+44134  node             0.0 
+44110  node             0.0 
+44108  node             0.0 
+44094  node             0.0 
+CPU usage: 37.35% user, 5.15% sys, 57.49% idle 
+90005  node             66.4
+90004  node             0.0 
+89991  node             0.0 
+90384  node             0.0 
+90238  k6               0.0 
+44135  node             0.0 
+44134  node             0.0 
+44110  node             0.0 
+44108  node             0.0 
+44094  node             0.0 
+CPU usage: 38.69% user, 3.23% sys, 58.6% idle 
+90384  node             183.7
+90005  node             99.6 
+90238  k6               0.6  
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 36.70% user, 4.15% sys, 59.14% idle 
+90005  node             99.6 
+90238  k6               0.9  
+89991  node             0.0  
+90004  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 11.44% user, 8.24% sys, 80.31% idle 
+90005  node             7.4  
+90238  k6               4.7  
+89991  node             0.0  
+90004  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 14.42% user, 4.68% sys, 80.89% idle 
+90238  k6               11.6 
+90005  node             10.6 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 8.36% user, 6.5% sys, 85.58% idle 
+90238  k6               17.1 
+90005  node             15.1 
+89991  node             0.0  
+90004  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 9.57% user, 6.17% sys, 84.25% idle 
+90238  k6               19.6 
+90005  node             18.9 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 10.14% user, 6.49% sys, 83.36% idle 
+90005  node             21.8 
+90238  k6               19.3 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 15.0% user, 7.10% sys, 77.89% idle 
+90005  node             24.0 
+90238  k6               23.1 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 20.32% user, 7.80% sys, 71.86% idle 
+90005  node             35.0 
+90238  k6               28.1 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 19.65% user, 7.12% sys, 73.22% idle 
+90005  node             41.3 
+90238  k6               31.4 
+89991  node             0.0  
+90004  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
+CPU usage: 23.52% user, 7.77% sys, 68.70% idle 
+90005  node             66.8 
+90238  k6               35.9 
+90004  node             0.0  
+89991  node             0.0  
+44135  node             0.0  
+44134  node             0.0  
+44110  node             0.0  
+44108  node             0.0  
+44094  node             0.0  
