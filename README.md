@@ -2,7 +2,7 @@
 
 Proyecto 4 del portfolio de QA: pruebas de rendimiento con k6 contra la API de reservas de pistas (`api-contract-tests`), ejecutada en local.
 
-**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta.
+**Estado:** v2 medida en 3 ejecuciones, con todos los umbrales cumplidos. No se ha encontrado punto de degradación hasta 200 VUs, así que P1 sigue abierta. La v3 (hasta 400 VUs) está preparada y sus predicciones anotadas; pendiente de ejecutar.
 
 ## Objetivo
 
@@ -84,6 +84,33 @@ Predicciones v2:
 CPU de v2-3 (`top` cada 30 s): no concluyente. Un proceso `node` que probablemente es la API (PID 75969, no confirmado) subió de 2 % a 34 % durante la prueba. Otros procesos `node` efímeros llegaron a 150–196 % en una o dos muestras. No se capturó la CPU total del sistema.
 
 Estado de P1: abierta. Una rampa v3 con más de 200 VUs está propuesta, sin ejecutar.
+
+## Escenario v3 (`scripts/rampa-v3.js`)
+
+Objetivo: encontrar el punto de degradación (P1) y separar la sensibilidad por endpoint (P3). Pendiente de ejecutar.
+
+- Rampa: 50, 100, 200, 300 y 400 usuarios virtuales, un minuto por etapa, y bajada de 10 s.
+- 400 usuarios de la API creados en `setup`, uno por usuario virtual.
+- Por iteración: `GET /pistas`, `GET /pistas/{id}`, `POST /reservas`, `GET /reservas` y `DELETE /reservas/{id}` (cancelación de la reserva recién creada).
+- Asignación de reservas: `r = u0 % 7` (día), `h = floor(u0 / 7) % 10` (franja), `p = floor(u0 / 70) % 15` (pista). Cada usuario tiene una combinación única, así que no hay solapes hasta 1.050 usuarios. Cambio respecto a v2: con 400 usuarios, la pista solo varía entre 6 de las 15 (`p` de 0 a 5).
+- Latencia por endpoint en métricas propias (`lat_*`) para P3. Los umbrales son los mismos que en v2 y se aplican por grupo (`grupo:lectura` y `grupo:escritura`).
+- Los 409 siguen contándose aparte en `reservas_409`. Con esta asignación deben ser cero; cualquier 409 es un problema del escenario.
+
+Limitaciones que afectan a esta versión:
+
+- `GET /reservas` devuelve también las reservas canceladas. Cada usuario acumula una por iteración, así que su respuesta crece durante la prueba.
+- La API guarda todas las reservas de todos los usuarios en una sola lista, y algunas comprobaciones recorren esa lista. El coste de `POST /reservas` puede crecer durante la prueba, a medida que la lista se alarga.
+
+### Predicciones v3 (anotadas antes de la primera ejecución)
+
+Hipótesis cualitativas, sin cifras:
+
+- Lecturas: la latencia sube de forma no lineal con la carga. El p95 de lecturas seguirá por debajo de 100 ms hasta 400 VUs. Si lo supera, será en las etapas de 300 o 400 VUs.
+- Escrituras: `POST /reservas` será más lento que `DELETE /reservas/{id}` en todas las etapas, porque valida solapes y límites. Es la hipótesis de P3 del alcance.
+- `GET /reservas` tendrá una latencia que crece a lo largo de la prueba por el tamaño de la respuesta. Es un efecto del escenario, no de la carga de concurrencia.
+- Errores inesperados: cero hasta 400 VUs. Si aparecen, serán tiempos de espera o errores 5xx en las etapas más altas.
+- Node ejecuta el código de la API en un solo hilo. Si la latencia se dispara en 300 o 400 VUs, el proceso `node` debería acercarse al 100 % de un núcleo en ese tramo. Si no se acerca, la causa no es la CPU de la API.
+- Si alguna predicción no se cumple, se anota aquí con la explicación. Si la prueba falla, primero se decide si el fallo es de la prueba o del producto.
 
 ## Escenario oficial v2 (`scripts/rampa-v2.js`)
 
