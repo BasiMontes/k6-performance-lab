@@ -91,6 +91,7 @@ Objetivo: encontrar el punto de degradación (P1) y separar la sensibilidad por 
 
 - Rampa: 50, 100, 200, 300 y 400 usuarios virtuales, un minuto por etapa, y bajada de 10 s.
 - 400 usuarios de la API creados en `setup`, uno por usuario virtual.
+- `setupTimeout` de 5 minutos. Primera ejecución (v3-1, sin medir): `setup` superó el límite de 60 s por defecto. En ese minuto se completaron 598 peticiones, unas 10 por segundo, con `node` al 86–99,8 % de un núcleo. El registro y el login, de ~100 ms cada uno, son caros en CPU; con 200 usuarios en v2 cabía justo en el límite.
 - Por iteración: `GET /pistas`, `GET /pistas/{id}`, `POST /reservas`, `GET /reservas` y `DELETE /reservas/{id}` (cancelación de la reserva recién creada).
 - Asignación de reservas: `r = u0 % 7` (día), `h = floor(u0 / 7) % 10` (franja), `p = floor(u0 / 70) % 15` (pista). Cada usuario tiene una combinación única, así que no hay solapes hasta 1.050 usuarios. Cambio respecto a v2: con 400 usuarios, la pista solo varía entre 6 de las 15 (`p` de 0 a 5).
 - Latencia por endpoint en métricas propias (`lat_*`) para P3. Los umbrales son los mismos que en v2 y se aplican por grupo (`grupo:lectura` y `grupo:escritura`).

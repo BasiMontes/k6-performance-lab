@@ -57,6 +57,8 @@ const latencia = {
 };
 
 export const options = {
+  // El registro y el login de 400 usuarios tardan más de los 60 s por defecto (~100 ms por petición).
+  setupTimeout: '5m',
   stages: [
     { duration: '1m', target: 50 },
     { duration: '1m', target: 100 },
